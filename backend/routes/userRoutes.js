@@ -13,4 +13,6 @@ router.use(restrictTo('user'));
 router.get('/profile', userController.getProfile);
 router.patch('/profile', userController.updateProfile);
 
+router.post('/:userId/rate', protect, userController.rateUser);
+
 module.exports = router;

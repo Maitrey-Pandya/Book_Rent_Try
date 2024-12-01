@@ -21,10 +21,11 @@ app.use(helmet());
 app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(cors({
-    origin: 'http://localhost:3000', // Your frontend URL
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['set-cookie']
   }));
 // Rate limiting
 const limiter = rateLimit({

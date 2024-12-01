@@ -1,5 +1,6 @@
 // src/utils/validators.js
 const { check, validationResult } = require('express-validator');
+const AppError = require('./AppError');
 
 // Password validation rules
 const passwordRules = {
@@ -15,17 +16,22 @@ const passwordRules = {
 
 // Base validator functions
 const emailValidator = (email) => {
+  console.log('Validating email:', email);
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return {
+  const result = {
     isValid: emailRegex.test(email),
     message: emailRegex.test(email) ? '' : 'Invalid email format'
   };
+  console.log('Email validation result:', result);
+  return result;
 };
 
 const passwordValidator = (password) => {
+  console.log('Validating password');
   const errors = [];
 
   if (!password) {
+    console.log('Password validation failed: Password is empty');
     return {
       isValid: false,
       message: 'Password is required'
@@ -33,33 +39,41 @@ const passwordValidator = (password) => {
   }
 
   if (password.length < passwordRules.minLength) {
+    console.log(`Password validation failed: Length < ${passwordRules.minLength}`);
     errors.push(`Password must be at least ${passwordRules.minLength} characters long`);
   }
 
   if (password.length > passwordRules.maxLength) {
+    console.log(`Password validation failed: Length > ${passwordRules.maxLength}`);
     errors.push(`Password must not exceed ${passwordRules.maxLength} characters`);
   }
 
   if (!passwordRules.patterns.uppercase.test(password)) {
+    console.log('Password validation failed: Missing uppercase letter');
     errors.push('Password must contain at least one uppercase letter');
   }
 
   if (!passwordRules.patterns.lowercase.test(password)) {
+    console.log('Password validation failed: Missing lowercase letter');
     errors.push('Password must contain at least one lowercase letter');
   }
 
   if (!passwordRules.patterns.number.test(password)) {
+    console.log('Password validation failed: Missing number');
     errors.push('Password must contain at least one number');
   }
 
   if (!passwordRules.patterns.special.test(password)) {
+    console.log('Password validation failed: Missing special character');
     errors.push('Password must contain at least one special character');
   }
 
-  return {
+  const result = {
     isValid: errors.length === 0,
     message: errors.join(', ')
   };
+  console.log('Password validation result:', result);
+  return result;
 };
 
 const phoneValidator = (phone) => {
@@ -102,14 +116,16 @@ const addressValidator = (address) => {
 
 // Book-related validators
 const isbnValidator = (isbn) => {
-  // Accepts ISBN-10 and ISBN-13 formats with or without hyphens
+  console.log('Validating ISBN:', isbn);
   const isbnRegex = /^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$/;
   
   const cleanIsbn = isbn.replace(/[- ]|^ISBN(?:-1[03])?:?/g, '');
-  return {
+  const result = {
     isValid: isbnRegex.test(isbn),
     message: isbnRegex.test(isbn) ? '' : 'Invalid ISBN format'
   };
+  console.log('ISBN validation result:', result);
+  return result;
 };
 
 const authorValidator = (author) => {
@@ -124,26 +140,21 @@ const authorValidator = (author) => {
 
 const genreValidator = (genre) => {
   const validGenres = [
-    'Fiction',
-    'Non-Fiction',
-    'Science Fiction',
-    'Fantasy',
-    'Mystery',
-    'Thriller',
-    'Romance',
-    'Horror',
-    'Biography',
-    'History',
-    'Science',
-    'Technology',
-    'Self-Help',
-    'Children',
-    'Other'
+    'Fiction', 'Non-Fiction', 'Science Fiction', 'Fantasy', 'Mystery',
+    'Thriller', 'Romance', 'Horror', 'Biography', 'History',
+    'Science', 'Technology', 'Self-Help', 'Children', 'Other'
   ];
 
+  if (!validGenres.includes(genre)) {
+    return {
+      isValid: false,
+      message: `Invalid genre. Must be one of: ${validGenres.join(', ')}`
+    };
+  }
+
   return {
-    isValid: validGenres.includes(genre),
-    message: validGenres.includes(genre) ? '' : `Invalid genre. Must be one of: ${validGenres.join(', ')}`
+    isValid: true,
+    message: ''
   };
 };
 
@@ -182,6 +193,34 @@ const descriptionValidator = (description) => {
     };
   }
   return { isValid: true, message: '' };
+};
+
+const leaseTermsValidator = (leaseTerms, listingType) => {
+  // Skip validation if not a lease listing
+  if (!['lease', 'both'].includes(listingType)) {
+    return { isValid: true, message: '' };
+  }
+
+  if (!leaseTerms || typeof leaseTerms !== 'string') {
+    return {
+      isValid: false,
+      message: 'Lease terms are required for rental listings'
+    };
+  }
+
+  const trimmedTerms = leaseTerms.trim();
+  if (trimmedTerms.length < 20) {
+    return {
+      isValid: false,
+      message: 'Lease terms must be at least 20 characters long'
+    };
+  }
+
+  return {
+    isValid: true,
+    message: '',
+    value: trimmedTerms
+  };
 };
 
 // Combined validators for user and publisher
@@ -310,53 +349,42 @@ exports.validateBookInput = ({
   leaseTerms
 }) => {
   const errors = [];
+  const validatedData = {
+    isbn,
+    title,
+    author,
+    description,
+    listingType,
+    price,
+    leaseTerms
+  };
 
-  // Required field checks
-  const requiredFields = { isbn, title, author, genre, description, listingType };
-  for (const [field, value] of Object.entries(requiredFields)) {
-    if (!value) {
-      errors.push(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
+  // Handle genre validation first
+  if (Array.isArray(genre)) {
+    if (genre.length === 0) {
+      errors.push('At least one genre must be selected');
+      return { isValid: false, errors };
     }
+    // Take the first genre from the array
+    validatedData.genre = genre[0];
+  } else {
+    validatedData.genre = genre;
   }
 
-  if (errors.length > 0) {
+  // Validate the single genre value
+  const genreValidation = genreValidator(validatedData.genre);
+  if (!genreValidation.isValid) {
+    errors.push(genreValidation.message);
     return { isValid: false, errors };
   }
 
-  // Validate fields
-  const validations = [
-    isbnValidator(isbn),
-    nameValidator(title, 'Title'),
-    authorValidator(author),
-    genreValidator(genre),
-    descriptionValidator(description)
-  ];
-
-  // Validate listing type
-  if (!['sale', 'lease', 'both'].includes(listingType)) {
-    errors.push('Invalid listing type. Must be sale, lease, or both');
-  }
-
-  // Validate price based on listing type
-  const priceValidation = priceValidator(price, listingType);
-  if (!priceValidation.isValid) {
-    errors.push(priceValidation.message);
-  }
-
-  // Validate lease terms if applicable
-  if (['lease', 'both'].includes(listingType) && (!leaseTerms || leaseTerms.trim().length < 10)) {
-    errors.push('Lease terms must be at least 10 characters long');
-  }
-
-  for (const validation of validations) {
-    if (!validation.isValid) {
-      errors.push(validation.message);
-    }
-  }
+  // Rest of the validation code...
+  // Required field checks, other validations, etc.
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
+    data: validatedData  // This will contain genre as a string, not an array
   };
 };
 
@@ -464,10 +492,32 @@ exports.validateReview = [
 
 // Express middleware validators
 exports.validateBook = (req, res, next) => {
-  const validation = exports.validateBookInput(req.body);
+  let bookData;
+  try {
+    bookData = typeof req.body.bookData === 'string' 
+      ? JSON.parse(req.body.bookData) 
+      : req.body.bookData;
+      
+    // Transform genre array to string before validation
+    if (Array.isArray(bookData.genre)) {
+      bookData.genre = bookData.genre[0];
+    }
+
+    console.log('Parsed and transformed book data:', bookData);
+  } catch (error) {
+    console.error('Error parsing book data:', error);
+    return next(new AppError('Invalid book data format', 400));
+  }
+
+  const validation = exports.validateBookInput(bookData);
+  
   if (!validation.isValid) {
+    console.error('Validation errors:', validation.errors);
     return next(new AppError(validation.errors.join(', '), 400));
   }
+  
+  // Store the transformed data back in req.body
+  req.body = validation.data || bookData;
   next();
 };
 

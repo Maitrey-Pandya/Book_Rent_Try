@@ -13,4 +13,12 @@ router.post('/forgot-password', authController.forgotPassword);
 router.use(protect);
 router.post('/refresh-token', authController.refreshToken);
 
+router.get('/test-auth', protect, (req, res) => {
+  res.json({
+    status: 'success',
+    message: 'Authentication working',
+    user: req.user
+  });
+});
+
 module.exports = router;

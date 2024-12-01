@@ -2,6 +2,8 @@ const User = require('../models/User');
 const { generateToken } = require('../utils/jwt');
 const { validateUserInput } = require('../utils/validators');
 const AppError = require('../utils/AppError');
+const Order = require('../models/Order');
+const catchAsync = require('../utils/catchAsync');
 
 exports.signup = async (req, res, next) => {
     try {
@@ -109,3 +111,46 @@ exports.updateProfile = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.rateUser = catchAsync(async (req, res, next) => {
+  const { rating, orderId } = req.body;
+  const sellerId = req.params.userId;
+
+  // Verify the order exists and belongs to the current user
+  const order = await Order.findOne({
+    _id: orderId,
+    buyer: req.user.id,
+    seller: sellerId,
+    status: 'delivered',
+    hasRated: false
+  });
+
+  if (!order) {
+    return next(new AppError('Invalid order or already rated', 400));
+  }
+
+  // Update the seller's readersScore
+  const seller = await User.findById(sellerId);
+  const currentScore = seller.readersScore || 0;
+  const totalRatings = seller.totalRatings || 0;
+  
+  // Calculate new average score
+  const newScore = Math.round(((currentScore * totalRatings) + rating) / (totalRatings + 1));
+
+  // Update user's score and mark order as rated
+  await Promise.all([
+    User.findByIdAndUpdate(sellerId, {
+      readersScore: newScore,
+      totalRatings: totalRatings + 1
+    }),
+    Order.findByIdAndUpdate(orderId, {
+      hasRated: true,
+      rating: rating
+    })
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Rating submitted successfully'
+  });
+});

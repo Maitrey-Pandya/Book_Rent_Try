@@ -4,6 +4,10 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
 
 exports.addBook = catchAsync(async (req, res, next) => {
+  console.log('Request body in controller:', req.body);
+  console.log('Request files:', req.files);
+  console.log('User data:', req.user);
+
   const uploaderType = req.user.role === 'publisher' ? 'Publisher' : 'User';
   
   const bookData = {
@@ -12,6 +16,8 @@ exports.addBook = catchAsync(async (req, res, next) => {
     uploaderType,
     publisher: uploaderType === 'Publisher' ? req.user.id : req.body.publisher
   };
+
+  console.log('Final book data to be saved:', bookData);
 
   const book = await Book.create(bookData);
   
@@ -61,10 +67,16 @@ exports.getBooks = catchAsync(async (req, res, next) => {
   });
 
 exports.getBook = catchAsync(async (req, res, next) => {
-  const book = await Book.find()
-    .select('isbn title author genre description rating totalRatings status listingType price')
-    .populate('uploader')
-    .populate('publisher');
+  const book = await Book.findById(req.params.id)
+    .select('isbn title author genre description rating totalRatings status listingType price uploader uploaderType publisher')
+    .populate({
+      path: 'uploader',
+      select: 'name publisherName'
+    })
+    .populate({
+      path: 'publisher',
+      select: 'name publisherName'
+    });
 
   if (!book) {
     return next(new AppError('No book found with that ID', 404));
