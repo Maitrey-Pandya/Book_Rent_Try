@@ -63,6 +63,14 @@ export function RentBookForm() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        setError('Image size should be less than 5MB');
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        setError('Please upload an image file');
+        return;
+      }
       setFormData(prev => ({ ...prev, coverImage: file }));
       setPreview(URL.createObjectURL(file));
     }
@@ -116,13 +124,15 @@ export function RentBookForm() {
       
       if (formData.coverImage) {
         formDataToSend.append('coverImage', formData.coverImage);
+        console.log('Appending coverImage:', formData.coverImage);
       }
+
+      console.log('Sending formData:', formDataToSend);
 
       const response = await api.post('/api/v1/books', formDataToSend, {
         headers: { 
           'Content-Type': 'multipart/form-data'
-        },
-        withCredentials: true
+        }
       });
 
       if (response.data.status === 'success') {

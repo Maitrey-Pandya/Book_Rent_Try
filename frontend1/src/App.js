@@ -1,13 +1,18 @@
 import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
+import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { AppRoutes } from './routes';
-import theme from './theme';
+import getTheme from './theme';
+import { useTheme } from './contexts/ThemeContext';
 
-function App() {
+function ThemedApp() {
+  const { mode } = useTheme();
+  const theme = getTheme(mode);
+
   return (
-    <ThemeProvider theme={theme}>
+    <MuiThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
         <BrowserRouter>
@@ -16,6 +21,14 @@ function App() {
           </MainLayout>
         </BrowserRouter>
       </AuthProvider>
+    </MuiThemeProvider>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <ThemedApp />
     </ThemeProvider>
   );
 }

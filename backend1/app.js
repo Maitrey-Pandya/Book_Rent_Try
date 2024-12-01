@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
@@ -12,7 +13,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const cors = require('cors');
-require('dotenv').config();
+const path = require('path');
 
 const app = express();
 
@@ -70,8 +71,20 @@ app.use('/api/v1/reviews', reviewRoutes);
 // Error handling middleware
 app.use(errorHandler);
 
+// Add this before your routes
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    status: 'error',
+    message: err.message
+  });
+});
+
 // Define port
 const PORT = process.env.PORT || 3000;
+
+// Serve static files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Start server
 app.listen(PORT, () => {

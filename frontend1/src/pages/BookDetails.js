@@ -16,6 +16,8 @@ import { useAuth } from '../contexts/AuthContext';
 import  api  from '../api/axios';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
 export function BookDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -74,6 +76,16 @@ export function BookDetails() {
     }
   };
 
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return '/assets/book_cover_template.jpg';
+    
+    if (imageUrl.includes('cloudinary')) {
+      return imageUrl.replace('/upload/', '/upload/w_800,h_1200,c_fill,g_center,f_auto,q_auto/');
+    }
+    
+    return imageUrl;
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" py={8}>
@@ -97,11 +109,41 @@ export function BookDetails() {
       <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
         <Grid container spacing={4}>
           <Grid item xs={12} md={4}>
-            <img
-              src={book.coverImage || '/assets/book_cover_template.jpg'}
-              alt={book.title}
-              style={{ width: '100%', borderRadius: 8 }}
-            />
+            <Box
+              sx={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: '500px',
+                margin: '0 auto',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: 3,
+                '&::before': {
+                  content: '""',
+                  display: 'block',
+                  paddingTop: '150%'
+                }
+              }}
+            >
+              <img
+                src={getImageUrl(book.coverImage)}
+                alt={book.title}
+                style={{ 
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  backgroundColor: 'rgba(0,0,0,0.03)'
+                }}
+                onError={(e) => {
+                  console.log('Image load error in details page');
+                  e.target.onerror = null;
+                  e.target.src = '/assets/book_cover_template.jpg';
+                }}
+              />
+            </Box>
             
             <Box sx={{ mt: 3 }}>
               <Typography variant="h6" gutterBottom>Pricing</Typography>

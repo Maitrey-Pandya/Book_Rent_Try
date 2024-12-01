@@ -81,6 +81,13 @@ const bookSchema = new mongoose.Schema({
     enum: ['sale', 'lease', 'both'],
     required: true
   },
+  coverImage: {
+    type: String,
+    required: true,
+    default: function() {
+      return '/uploads/books/default-book-cover.jpg';
+    }
+  },
   price: {
     sale: {
       type: Number,

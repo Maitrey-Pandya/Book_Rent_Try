@@ -5,19 +5,57 @@ import { useAuth } from '../../contexts/AuthContext';
 export function BookCard({ book }) {
   const { isPublisher } = useAuth();
 
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return '/assets/book_cover_template.jpg';
+    
+    if (imageUrl.includes('cloudinary')) {
+      return imageUrl.replace('/upload/', '/upload/w_400,h_600,c_fill,g_center,f_auto,q_auto/');
+    }
+    
+    return imageUrl;
+  };
+
   return (
-    <Card component={Link} to={`/books/${book._id}`} sx={{ 
-      textDecoration: 'none',
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
-      <CardMedia
-        component="img"
-        height="200"
-        image={book.coverImage || '/assets/book_cover_template.jpg'}
-        alt={book.title}
-      />
+    <Card 
+      component={Link} 
+      to={`/books/${book._id}`} 
+      sx={{ 
+        textDecoration: 'none',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'transform 0.2s ease-in-out',
+        '&:hover': {
+          transform: 'scale(1.02)',
+          boxShadow: 3
+        }
+      }}
+    >
+      <Box sx={{ 
+        position: 'relative',
+        paddingTop: '150%',
+        width: '100%',
+        backgroundColor: 'rgba(0,0,0,0.03)'
+      }}>
+        <CardMedia
+          component="img"
+          image={getImageUrl(book.coverImage)}
+          alt={book.title}
+          onError={(e) => {
+            console.log('Image load error:', book.title);
+            e.target.onerror = null;
+            e.target.src = '/assets/book_cover_template.jpg';
+          }}
+          sx={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover'
+          }}
+        />
+      </Box>
       <CardContent sx={{ flexGrow: 1 }}>
         <Typography gutterBottom variant="h6" component="div" noWrap>
           {book.title}

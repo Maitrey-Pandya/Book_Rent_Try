@@ -223,6 +223,22 @@ const leaseTermsValidator = (leaseTerms, listingType) => {
   };
 };
 
+const conditionValidator = (condition) => {
+  const validConditions = ['new', 'like-new', 'good', 'fair', 'poor'];
+  
+  if (!condition || !validConditions.includes(condition)) {
+    return {
+      isValid: false,
+      message: `Invalid condition. Must be one of: ${validConditions.join(', ')}`
+    };
+  }
+
+  return {
+    isValid: true,
+    message: ''
+  };
+};
+
 // Combined validators for user and publisher
 exports.validateUserInput = ({ 
   email, 
@@ -346,7 +362,8 @@ exports.validateBookInput = ({
   description,
   listingType,
   price,
-  leaseTerms
+  leaseTerms,
+  condition
 }) => {
   const errors = [];
   const validatedData = {
@@ -356,10 +373,32 @@ exports.validateBookInput = ({
     description,
     listingType,
     price,
-    leaseTerms
+    leaseTerms,
+    condition
   };
 
-  // Handle genre validation first
+  // Required fields check
+  const requiredFields = {
+    isbn,
+    title,
+    author,
+    genre,
+    description,
+    listingType,
+    condition
+  };
+
+  for (const [field, value] of Object.entries(requiredFields)) {
+    if (!value) {
+      errors.push(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
+    }
+  }
+
+  if (errors.length > 0) {
+    return { isValid: false, errors };
+  }
+
+  // Handle genre validation
   if (Array.isArray(genre)) {
     if (genre.length === 0) {
       errors.push('At least one genre must be selected');
@@ -371,20 +410,35 @@ exports.validateBookInput = ({
     validatedData.genre = genre;
   }
 
-  // Validate the single genre value
-  const genreValidation = genreValidator(validatedData.genre);
-  if (!genreValidation.isValid) {
-    errors.push(genreValidation.message);
-    return { isValid: false, errors };
+  // Validate all fields
+  const validations = [
+    isbnValidator(isbn),
+    authorValidator(author),
+    genreValidator(validatedData.genre),
+    descriptionValidator(description),
+    conditionValidator(condition)
+  ];
+
+  // Add price validation if price exists
+  if (price) {
+    validations.push(priceValidator(price, listingType));
   }
 
-  // Rest of the validation code...
-  // Required field checks, other validations, etc.
+  // Add lease terms validation if applicable
+  if (['lease', 'both'].includes(listingType)) {
+    validations.push(leaseTermsValidator(leaseTerms, listingType));
+  }
+
+  for (const validation of validations) {
+    if (!validation.isValid) {
+      errors.push(validation.message);
+    }
+  }
 
   return {
     isValid: errors.length === 0,
     errors,
-    data: validatedData  // This will contain genre as a string, not an array
+    data: validatedData
   };
 };
 

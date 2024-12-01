@@ -5,31 +5,28 @@ const AppError = require('../utils/AppError');
 
 exports.addBook = catchAsync(async (req, res, next) => {
   console.log('Raw request body:', req.body);
+  console.log('File:', req.file);
   
   let bookData;
   try {
-    // Parse the JSON string back into an object
     bookData = JSON.parse(req.body.bookData);
-    console.log('Parsed book data:', bookData);
   } catch (error) {
-    console.error('Error parsing book data:', error);
     return next(new AppError('Invalid book data format', 400));
+  }
+
+  if (!req.file) {
+    return next(new AppError('Cover image is required', 400));
   }
 
   const uploaderType = req.user.role === 'publisher' ? 'Publisher' : 'User';
   
-  // Combine the parsed data with user info
   const finalBookData = {
     ...bookData,
     uploader: req.user.id,
     uploaderType,
-    publisher: uploaderType === 'Publisher' ? req.user.id : bookData.publisher
+    publisher: uploaderType === 'Publisher' ? req.user.id : bookData.publisher,
+    coverImage: req.file.path || req.file.secure_url
   };
-
-  // Add cover image if it exists
-  if (req.files && req.files.coverImage) {
-    finalBookData.coverImage = req.files.coverImage[0].filename;
-  }
 
   console.log('Final book data to save:', finalBookData);
 
@@ -66,23 +63,23 @@ exports.bulkAddBooks = catchAsync(async (req, res, next) => {
 });
 
 exports.getBooks = catchAsync(async (req, res, next) => {
-    const books = await Book.find()
-      .select('isbn title author genre description rating totalRatings status listingType price')
-      .populate('uploader')
-      .populate('publisher');
-  
-    res.status(200).json({
-      status: 'success',
-      results: books.length,
-      data: {
-        books
-      }
-    });
+  const books = await Book.find()
+    .select('isbn title author genre description rating totalRatings status listingType price coverImage')
+    .populate('uploader')
+    .populate('publisher');
+
+  res.status(200).json({
+    status: 'success',
+    results: books.length,
+    data: {
+      books
+    }
   });
+});
 
 exports.getBook = catchAsync(async (req, res, next) => {
   const book = await Book.findById(req.params.id)
-    .select('isbn title author genre description rating totalRatings status listingType price uploader uploaderType publisher')
+    .select('isbn title author genre description rating totalRatings status listingType price uploader uploaderType publisher coverImage')
     .populate({
       path: 'uploader',
       select: 'name publisherName'

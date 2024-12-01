@@ -16,13 +16,15 @@ import {
   InputLabel
 } from '@mui/material';
 import api from '../api/axios';
+import { useTheme } from '../contexts/ThemeContext';
 
 export function Settings() {
+  const { mode, updateTheme } = useTheme();
   const [settings, setSettings] = useState({
     emailNotifications: true,
     orderUpdates: true,
     newBookAlerts: false,
-    theme: 'light',
+    theme: mode,
     language: 'en',
     currency: 'INR'
   });
@@ -32,6 +34,9 @@ export function Settings() {
 
   const handleChange = (event) => {
     const { name, checked, value } = event.target;
+    if (name === 'theme') {
+      updateTheme(value);
+    }
     setSettings(prev => ({
       ...prev,
       [name]: checked !== undefined ? checked : value
