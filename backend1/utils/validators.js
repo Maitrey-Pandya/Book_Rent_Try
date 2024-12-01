@@ -166,8 +166,8 @@ const priceValidator = (price, listingType) => {
   }
 
   if (['lease', 'both'].includes(listingType)) {
-    if (!price.lease || !price.lease.perDay || price.lease.perDay <= 0) {
-      errors.push('Lease price per day must be greater than 0');
+    if (!price.lease || !price.lease.perMonth || price.lease.perMonth <= 0) {
+      errors.push('Lease price per month must be greater than 0');
     }
 
     if (price.lease.maxDuration && price.lease.minDuration > price.lease.maxDuration) {
@@ -175,7 +175,7 @@ const priceValidator = (price, listingType) => {
     }
 
     if (price.lease.minDuration && price.lease.minDuration < 1) {
-      errors.push('Minimum duration must be at least 1 day');
+      errors.push('Minimum duration must be at least 1 month');
     }
   }
 

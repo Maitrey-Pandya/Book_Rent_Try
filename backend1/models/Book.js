@@ -96,7 +96,7 @@ const bookSchema = new mongoose.Schema({
       }
     },
     lease: {
-      perDay: {
+      perMonth: {
         type: Number,
         required: function() {
           return this.listingType === 'lease' || this.listingType === 'both';

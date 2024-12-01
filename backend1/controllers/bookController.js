@@ -166,7 +166,7 @@ exports.getAllBooks = async (req, res, next) => {
         case 'price':
           sortObj = {
             'price.sale': sortOrder,
-            'price.lease.perDay': sortOrder
+            'price.lease.perMonth': sortOrder
           };
           console.log('Applying price sort');
           break;

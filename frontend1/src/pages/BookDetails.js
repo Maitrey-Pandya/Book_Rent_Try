@@ -15,6 +15,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import  api  from '../api/axios';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import { format } from 'date-fns';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
@@ -84,6 +85,11 @@ export function BookDetails() {
     }
     
     return imageUrl;
+  };
+
+  const formatDate = (date) => {
+    if (!date) return 'N/A';
+    return format(new Date(date), 'MMMM dd, yyyy');
   };
 
   if (loading) {
@@ -158,13 +164,13 @@ export function BookDetails() {
               {['lease', 'both'].includes(book.listingType) && (
                 <>
                   <Chip 
-                    label={`Rent: ₹${book.price?.lease?.perDay}/day`} 
+                    label={`Rent: ₹${book.price?.lease?.perMonth}/month`} 
                     color="primary" 
                     variant="outlined"
                     sx={{ mb: 1, width: '100%' }}
                   />
                   <Typography variant="body2">
-                    Rental Duration: {book.price?.lease?.minDuration || 1} - {book.price?.lease?.maxDuration || 'No limit'} days
+                    Rental Duration: {book.price?.lease?.minDuration || 1} - {book.price?.lease?.maxDuration || 'No limit'} months
                   </Typography>
                 </>
               )}
@@ -205,7 +211,7 @@ export function BookDetails() {
                   <Typography><strong>ISBN:</strong> {book.isbn || 'N/A'}</Typography>
                   <Typography><strong>Genre:</strong> {book.genre || 'N/A'}</Typography>
                   <Typography><strong>Status:</strong> {book.status}</Typography>
-                  <Typography><strong>Listed On:</strong> {new Date(book.createdAt).toLocaleDateString()}</Typography>
+                  <Typography><strong>Listed On:</strong> {formatDate(book.createdAt)}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography>
