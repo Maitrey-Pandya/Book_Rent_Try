@@ -7,7 +7,10 @@ import { Profile } from './pages/Profile';
 import { Books } from './pages/Books';
 import { BookDetails } from './pages/BookDetails';
 import { RentBook } from './pages/RentBook';
-
+import { Cart } from './pages/Cart';
+import { Checkout } from './pages/Checkout';
+import { TransactionHistory } from './pages/TransactionHistory';
+import { Settings } from './pages/Setting';
 // Protected Route Component
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -85,7 +88,38 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
+      <Route 
+        path="/cart" 
+        element={
+          <ProtectedRoute>
+            <Cart />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/checkout" 
+        element={
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/transactions" 
+        element={
+          <ProtectedRoute>
+            <TransactionHistory />
+          </ProtectedRoute>
+        }
+      />
+      <Route 
+        path="/settings" 
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
       {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

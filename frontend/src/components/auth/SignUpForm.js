@@ -56,6 +56,7 @@ export function SignupForm({ initialRole }) {
       const signupData = {
         email: formData.email,
         password: formData.password,
+        confirmPassword:formData.confirmPassword,
         name: formData.name,
         phone: formData.phone,
         address: formData.address,

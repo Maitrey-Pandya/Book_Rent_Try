@@ -8,9 +8,10 @@ import {
   Button,
   Paper,
   IconButton,
-  Divider
+  Divider,
+  Alert
 } from '@mui/material';
-import { Edit as EditIcon, Save as SaveIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import api from '../../api/axios';
@@ -19,6 +20,8 @@ export function UserProfile() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -42,18 +45,34 @@ export function UserProfile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+    
     try {
-      await api.put('/api/v1/users/profile', {
-        name: formData.name,
+      const response = await api.put('/api/v1/users/profile', {
         phone: formData.phone,
         address: formData.address
       });
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Error updating profile:', error);
+      
+      if (response.data.status === 'success') {
+        setSuccess('Profile updated successfully!');
+        setIsEditing(false);
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setFormData(prev => ({
+      ...prev,
+      phone: user.phone || '',
+      address: user.address || ''
+    }));
+    setError('');
   };
 
   if (loading) {
@@ -62,11 +81,14 @@ export function UserProfile() {
 
   return (
     <Paper elevation={3} sx={{ p: 4 }}>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+      
       <Grid container spacing={4}>
         {/* Left Column - Avatar and Score */}
         <Grid item xs={12} md={4} sx={{ textAlign: 'center' }}>
           <Avatar
-            src="/user-profile.png"
+            src="/assests/user_photo_template.webp"
             alt={formData.name}
             sx={{ width: 200, height: 200, mx: 'auto', mb: 2 }}
           />
@@ -79,22 +101,54 @@ export function UserProfile() {
         <Grid item xs={12} md={8}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
             <Typography variant="h5">Profile Details</Typography>
-            <IconButton onClick={() => setIsEditing(!isEditing)} color="primary">
-              {isEditing ? <SaveIcon /> : <EditIcon />}
-            </IconButton>
+            <Box>
+              {isEditing ? (
+                <>
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    startIcon={<SaveIcon />}
+                  >
+                    Save Changes
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={handleCancel}
+                    sx={{ ml: 1 }}
+                    startIcon={<CancelIcon />}
+                  >
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={() => setIsEditing(true)}
+                  startIcon={<EditIcon />}
+                >
+                  Edit Profile
+                </Button>
+              )}
+            </Box>
           </Box>
 
           <Divider sx={{ mb: 3 }} />
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit(e);
+          }}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="Full Name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  disabled={!isEditing}
+                  disabled
+                  helperText="Name cannot be changed"
                 />
               </Grid>
               <Grid item xs={12}>
@@ -106,7 +160,7 @@ export function UserProfile() {
                   helperText="Email cannot be changed"
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="Phone"
@@ -126,18 +180,6 @@ export function UserProfile() {
                   rows={3}
                 />
               </Grid>
-              {isEditing && (
-                <Grid item xs={12}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    fullWidth
-                    disabled={loading}
-                  >
-                    Save Changes
-                  </Button>
-                </Grid>
-              )}
             </Grid>
           </form>
         </Grid>

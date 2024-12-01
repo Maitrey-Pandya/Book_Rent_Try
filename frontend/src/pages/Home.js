@@ -9,15 +9,18 @@ import {
     CardMedia 
   } from '@mui/material';
   import { useNavigate } from 'react-router-dom';
+  import { useAuth } from '../contexts/AuthContext';
+  import { CartButton } from '../components/cart/CartButton';
   
   const teamMembers = [
   ];
   
   export function Home() {
     const navigate = useNavigate();
+    const { user } = useAuth();
   
     return (
-      <Box>
+      <Box position="relative">
         {/* Hero Section */}
         <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 8 }}>
           <Container maxWidth="md">
@@ -27,14 +30,25 @@ import {
             <Typography variant="h5" paragraph>
               Your platform for swapping and leasing books with other readers.
             </Typography>
-            <Button 
-              variant="contained" 
-              color="secondary" 
-              size="large"
-              onClick={() => navigate('/signup')}
-            >
-              Join Now
-            </Button>
+            {!user ? (
+              <Button 
+                variant="contained" 
+                color="secondary" 
+                size="large"
+                onClick={() => navigate('/signup')}
+              >
+                Join Now
+              </Button>
+            ) : (
+              <Button 
+                variant="contained" 
+                color="secondary" 
+                size="large"
+                onClick={() => navigate('/books')}
+              >
+                Browse Books
+              </Button>
+            )}
           </Container>
         </Box>
   
@@ -107,6 +121,9 @@ import {
             </Box>
           </Container>
         </Box>
+  
+        {/* Add CartButton only for authenticated users */}
+        {user && <CartButton />}
       </Box>
     );
   }

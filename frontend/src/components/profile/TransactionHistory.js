@@ -9,13 +9,22 @@ import {
   Paper,
   CircularProgress,
   Box,
-  Typography
+  Typography,
+  Chip,
+  Button,
+  Rating
 } from '@mui/material';
+import StarIcon from '@mui/icons-material/Star';
 import api from '../../api/axios';
+import { UserRating } from './UserRating';
 
 export function TransactionHistoryTable() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [ratingDialog, setRatingDialog] = useState({
+    open: false,
+    transaction: null
+  });
 
   useEffect(() => {
     fetchTransactions();
@@ -24,12 +33,40 @@ export function TransactionHistoryTable() {
   const fetchTransactions = async () => {
     try {
       const response = await api.get('/api/v1/orders');
+      console.log('Fetched transactions:', response.data.data.orders);
       setTransactions(response.data.data.orders);
     } catch (error) {
       console.error('Error fetching transactions:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: 'warning',
+      confirmed: 'info',
+      shipped: 'primary',
+      delivered: 'success',
+      cancelled: 'error',
+      returned: 'default'
+    };
+    return colors[status] || 'default';
+  };
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const handleRateClick = (transaction) => {
+    setRatingDialog({
+      open: true,
+      transaction
+    });
   };
 
   if (loading) {
@@ -51,35 +88,68 @@ export function TransactionHistoryTable() {
   }
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Duration</TableCell>
-            <TableCell>Book Title</TableCell>
-            <TableCell>Transaction Type</TableCell>
-            <TableCell>Seller/Renter</TableCell>
-            <TableCell>Amount</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {transactions.map((transaction) => (
-            <TableRow key={transaction._id}>
-              <TableCell>
-                {new Date(transaction.createdAt).toLocaleDateString()}
-              </TableCell>
-              <TableCell>
-                {transaction.duration ? `${transaction.duration} days` : 'No Duration'}
-              </TableCell>
-              <TableCell>{transaction.book.title}</TableCell>
-              <TableCell>{transaction.type}</TableCell>
-              <TableCell>{transaction.seller.name}</TableCell>
-              <TableCell>₹{transaction.amount}</TableCell>
+    <>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Order Date</TableCell>
+              <TableCell>Order ID</TableCell>
+              <TableCell>Items</TableCell>
+              <TableCell>Total Amount</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {transactions.map((order) => (
+              <TableRow key={order._id}>
+                <TableCell>{formatDate(order.createdAt)}</TableCell>
+                <TableCell>{order._id.slice(-6)}</TableCell>
+                <TableCell>
+                  {order.items.map((item, index) => (
+                    <Box key={item._id}>
+                      <Typography variant="body2">
+                        {item.quantity}x {item.book?.title}
+                      </Typography>
+                    </Box>
+                  ))}
+                </TableCell>
+                <TableCell>₹{order.totalAmount}</TableCell>
+                <TableCell>
+                  <Chip 
+                    label={order.status.toUpperCase()} 
+                    color={getStatusColor(order.status)}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  {order.status === 'delivered' && !order.hasRated && (
+                    <Button
+                      startIcon={<StarIcon />}
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleRateClick(order)}
+                    >
+                      Rate Seller
+                    </Button>
+                  )}
+                  {order.hasRated && (
+                    <Rating value={order.rating} readOnly size="small" />
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <UserRating
+        open={ratingDialog.open}
+        onClose={() => setRatingDialog({ open: false, transaction: null })}
+        transaction={ratingDialog.transaction}
+        onRatingSubmit={fetchTransactions}
+      />
+    </>
   );
 }

@@ -88,7 +88,7 @@ export function Navbar() {
         {user ? (
           <>
             <IconButton onClick={handleMenu} color="inherit">
-              <Avatar src="/user-profile.png" alt={user.name} />
+              <Avatar src="/assets/user_photo_template.webp" alt={user.name} />
             </IconButton>
             <Menu
               anchorEl={anchorEl}

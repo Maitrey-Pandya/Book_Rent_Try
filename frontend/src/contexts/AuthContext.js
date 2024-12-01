@@ -71,37 +71,32 @@ export function AuthProvider({ children }) {
 
   const handleAuthResponse = (response) => {
     if (response.data.status === 'success') {
-      const { token } = response.data.user || response.data.publisher;
-      localStorage.setItem('token', token);
-      setToken(token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(response.data.user || response.data.publisher);
     }
   };
 
   const login = async (email, password) => {
     try {
-        console.log('Attempting login with:', { email });
-        const response = await api.post('/api/auth/login', { 
-            email, 
-            password 
-        });
-        
-        console.log('Login response:', response.data);
-        
-        if (response.data.status === 'success') {
-            const { token, user } = response.data;
-            localStorage.setItem('token', token);
-            setToken(token);
-            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            setUser(user);
-            return response.data;
-        } else {
-            throw new Error(response.data.message || 'Login failed');
-        }
+      console.log('Attempting login with:', { email });
+      const response = await api.post('/api/auth/login', { 
+        email, 
+        password 
+      }, {
+        withCredentials: true
+      });
+      
+      console.log('Login response:', response.data);
+      
+      if (response.data.status === 'success') {
+        const { user } = response.data;
+        setUser(user);
+        return response.data;
+      } else {
+        throw new Error(response.data.message || 'Login failed');
+      }
     } catch (error) {
-        console.error('Login error:', error.response?.data || error.message);
-        throw error;
+      console.error('Login error:', error.response?.data || error.message);
+      throw error;
     }
   };
 
@@ -112,13 +107,27 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const testAuth = async () => {
+    try {
+      const response = await api.get('/api/auth/test-auth', {
+        withCredentials: true
+      });
+      console.log('Auth test response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Auth test error:', error.response?.data || error.message);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     token,
     loading,
     login,
     logout,
-    signup
+    signup,
+    testAuth
   };
 
   return (

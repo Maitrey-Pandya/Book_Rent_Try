@@ -5,14 +5,16 @@ import {
   Paper,
   Typography,
   Grid,
-  Button,
   Box,
+  Button,
   Chip,
+  Alert,
   CircularProgress,
-  Alert
+  ButtonGroup
 } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
-import api from '../api/axios';
+import  api  from '../api/axios';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
 export function BookDetails() {
   const { id } = useParams();
@@ -29,11 +31,46 @@ export function BookDetails() {
   const fetchBookDetails = async () => {
     try {
       const response = await api.get(`/api/v1/books/${id}`);
-      setBook(response.data.data.book);
+      if (response.data.status === 'success') {
+        const bookData = response.data.data.book;
+        setBook(Array.isArray(bookData) ? bookData[0] : bookData);
+      } else {
+        setError('Failed to load book details');
+      }
     } catch (err) {
-      setError('Failed to load book details');
+      setError(err.response?.data?.message || 'Failed to load book details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddToCart = async (type) => {
+    try {
+      const currentDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + 7);
+
+      const cartData = {
+        bookId: book._id,
+        quantity: 1,
+        type: type,
+        rentalDuration: type === 'rent' ? {
+          startDate: currentDate,
+          endDate: endDate
+        } : undefined
+      };
+
+      console.log('Adding to cart:', cartData);
+      const response = await api.post('/api/v1/cart/add', cartData);
+      console.log('Add to cart response:', response.data);
+      
+      if (response.data.status === 'success') {
+        alert('Added to cart successfully!');
+        navigate('/cart');
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error.response || error);
+      setError(error.response?.data?.message || 'Failed to add item to cart');
     }
   };
 
@@ -61,48 +98,96 @@ export function BookDetails() {
         <Grid container spacing={4}>
           <Grid item xs={12} md={4}>
             <img
-              src={book.coverImage || '/book-placeholder.png'}
+              src={book.coverImage || '/assets/book_cover_template.jpg'}
               alt={book.title}
               style={{ width: '100%', borderRadius: 8 }}
             />
-          </Grid>
-          
-          <Grid item xs={12} md={8}>
-            <Typography variant="h4" gutterBottom>
-              {book.title}
-            </Typography>
             
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" gutterBottom>Pricing</Typography>
+              {['sale', 'both'].includes(book.listingType) && (
+                <Chip 
+                  label={`Sale Price: ₹${book.price?.sale}`} 
+                  color="primary" 
+                  variant="outlined"
+                  sx={{ mb: 1, width: '100%' }}
+                />
+              )}
+              {['lease', 'both'].includes(book.listingType) && (
+                <>
+                  <Chip 
+                    label={`Rent: ₹${book.price?.lease?.perDay}/day`} 
+                    color="primary" 
+                    variant="outlined"
+                    sx={{ mb: 1, width: '100%' }}
+                  />
+                  <Typography variant="body2">
+                    Rental Duration: {book.price?.lease?.minDuration || 1} - {book.price?.lease?.maxDuration || 'No limit'} days
+                  </Typography>
+                </>
+              )}
+            </Box>
+          </Grid>
+
+          <Grid item xs={12} md={8}>
+            <Typography variant="h4" gutterBottom>{book.title}</Typography>
             <Typography variant="subtitle1" color="text.secondary" gutterBottom>
               By {book.author}
             </Typography>
             
             <Box display="flex" gap={1} mb={2}>
-              {book.listingType === 'lease' && (
-                <Chip label={`₹${book.price.lease.perDay}/day`} color="primary" variant="outlined" />
-              )}
-              {book.listingType === 'sale' && (
-                <Chip label={`₹${book.price.sale}`} color="primary" variant="outlined" />
-              )}
               <Chip 
                 label={book.status} 
                 color={book.status === 'available' ? 'success' : 'error'} 
               />
+              <Chip 
+                label={`${book.rating}/5 (${book.totalRatings} reviews)`} 
+                variant="outlined" 
+              />
+              <Chip label={book.genre} color="primary" />
             </Box>
 
-            <Typography variant="body1" paragraph>
-              {book.description}
-            </Typography>
+            <Typography variant="body1" paragraph>{book.description}</Typography>
+
+            {['lease', 'both'].includes(book.listingType) && book.leaseTerms && (
+              <Box sx={{ mt: 2, mb: 3 }}>
+                <Typography variant="h6" gutterBottom>Lease Terms</Typography>
+                <Typography variant="body2">{book.leaseTerms}</Typography>
+              </Box>
+            )}
             
             <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Details
-              </Typography>
-              <Typography>ISBN: {book.isbn}</Typography>
-              <Typography>Condition: {book.condition}</Typography>
+              <Typography variant="h6" gutterBottom>Book Details</Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography><strong>ISBN:</strong> {book.isbn || 'N/A'}</Typography>
+                  <Typography><strong>Genre:</strong> {book.genre || 'N/A'}</Typography>
+                  <Typography><strong>Status:</strong> {book.status}</Typography>
+                  <Typography><strong>Listed On:</strong> {new Date(book.createdAt).toLocaleDateString()}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography>
+                    <strong>Publisher:</strong> {
+                      book.uploaderType === 'Publisher' 
+                        ? book.uploader?.publisherName || book.uploader?.name
+                        : book.publisher?.publisherName || book.publisher?.name || 'N/A'
+                    }
+                  </Typography>
+                  <Typography>
+                    <strong>Uploaded by:</strong> {
+                      book.uploaderType === 'Publisher'
+                        ? book.uploader?.publisherName || book.uploader?.name
+                        : book.uploader?.name || 'N/A'
+                    }
+                  </Typography>
+                  <Typography><strong>Listing Type:</strong> {book.listingType}</Typography>
+                  <Typography><strong>Condition:</strong> {book.condition || 'N/A'}</Typography>
+                </Grid>
+              </Grid>
             </Box>
 
-            <Box sx={{ mt: 4 }}>
-              {book.owner === user?.id ? (
+            <Box sx={{ mt: 4, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+              {book.uploader?._id === user?.id ? (
                 <Button
                   variant="contained"
                   color="primary"
@@ -112,13 +197,45 @@ export function BookDetails() {
                 </Button>
               ) : (
                 book.status === 'available' && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => navigate(`/books/${id}/request`)}
-                  >
-                    {book.listingType === 'lease' ? 'Rent Now' : 'Buy Now'}
-                  </Button>
+                  <>
+                    <ButtonGroup variant="contained">
+                      {['sale', 'both'].includes(book.listingType) && (
+                        <Button
+                          onClick={() => handleAddToCart('purchase')}
+                          startIcon={<ShoppingCartIcon />}
+                        >
+                          Buy Now
+                        </Button>
+                      )}
+                      {['lease', 'both'].includes(book.listingType) && (
+                        <Button
+                          onClick={() => handleAddToCart('rent')}
+                          startIcon={<ShoppingCartIcon />}
+                        >
+                          Rent Now
+                        </Button>
+                      )}
+                    </ButtonGroup>
+                    
+                    <ButtonGroup variant="outlined">
+                      {['sale', 'both'].includes(book.listingType) && (
+                        <Button
+                          onClick={() => handleAddToCart('purchase')}
+                          startIcon={<ShoppingCartIcon />}
+                        >
+                          Add to Cart
+                        </Button>
+                      )}
+                      {['lease', 'both'].includes(book.listingType) && (
+                        <Button
+                          onClick={() => handleAddToCart('rent')}
+                          startIcon={<ShoppingCartIcon />}
+                        >
+                          Add to Rent Cart
+                        </Button>
+                      )}
+                    </ButtonGroup>
+                  </>
                 )
               )}
             </Box>

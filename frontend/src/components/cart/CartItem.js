@@ -1,84 +1,62 @@
-import {
-    ListItem,
-    ListItemText,
-    IconButton,
-    Typography,
-    Box,
-    TextField
-  } from '@mui/material';
-  import { Delete as DeleteIcon } from '@mui/icons-material';
-  import { useState } from 'react';
-  import api from '../../api/axios';
-  
-  export function CartItem({ item, onUpdate, onRemove }) {
-    const [quantity, setQuantity] = useState(item.quantity);
-    const [loading, setLoading] = useState(false);
-  
-    const handleQuantityChange = async (newQuantity) => {
-      if (newQuantity < 1) return;
-      setLoading(true);
-      try {
-        await api.patch(`/api/v1/cart/items/${item._id}`, {
-          quantity: newQuantity
-        });
-        setQuantity(newQuantity);
-        onUpdate();
-      } catch (error) {
-        console.error('Error updating quantity:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    const calculateItemTotal = () => {
-      if (item.type === 'rent') {
-        const days = Math.ceil(
-          (new Date(item.rentalDuration.endDate) - new Date(item.rentalDuration.startDate)) 
-          / (1000 * 60 * 60 * 24)
-        );
-        return item.price * days * quantity;
-      }
-      return item.price * quantity;
-    };
-  
-    return (
-      <ListItem
-        divider
-        secondaryAction={
-          <IconButton edge="end" onClick={() => onRemove(item._id)}>
-            <DeleteIcon />
-          </IconButton>
-        }
-      >
-        <ListItemText
-          primary={item.book.title}
-          secondary={
-            <Box>
+import { Box, Card, CardContent, Typography, IconButton, TextField, Grid } from '@mui/material';
+import { Delete as DeleteIcon } from '@mui/icons-material';
+
+export function CartItem({ item, onUpdate, onRemove }) {
+  const handleQuantityChange = (newQuantity) => {
+    if (newQuantity < 1) return;
+    onUpdate(item._id, newQuantity);
+  };
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString();
+  };
+
+  return (
+    <Card sx={{ mb: 2, position: 'relative' }}>
+      <CardContent>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={3}>
+            <img 
+              src={item.book.coverImage || '/assets/book_cover_template.jpg'} 
+              alt={item.book.title}
+              style={{ width: '100%', maxWidth: '120px' }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={9}>
+            <Typography variant="h6" gutterBottom>
+              {item.book.title}
+            </Typography>
+            <Typography color="text.secondary" gutterBottom>
+              {item.type === 'rent' ? 'Rental' : 'Purchase'}
+            </Typography>
+            {item.type === 'rent' && (
               <Typography variant="body2" color="text.secondary">
-                {item.type === 'rent' ? 'Rental' : 'Purchase'}
-                {item.type === 'rent' && ` (${item.rentalDuration} days)`}
+                Duration: {formatDate(item.rentalDuration.startDate)} - {formatDate(item.rentalDuration.endDate)}
               </Typography>
-              <Typography variant="body2">
-                Price: ₹{item.price}
-                {item.type === 'rent' && '/day'}
+            )}
+            <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+              <TextField
+                type="number"
+                size="small"
+                value={item.quantity}
+                onChange={(e) => handleQuantityChange(parseInt(e.target.value))}
+                inputProps={{ min: 1 }}
+                sx={{ width: '80px' }}
+              />
+              <Typography variant="h6">
+                ₹{item.price * item.quantity}
               </Typography>
-              <Box display="flex" alignItems="center" gap={2} mt={1}>
-                <TextField
-                  type="number"
-                  size="small"
-                  value={quantity}
-                  onChange={(e) => handleQuantityChange(parseInt(e.target.value))}
-                  disabled={loading}
-                  inputProps={{ min: 1 }}
-                  sx={{ width: '80px' }}
-                />
-                <Typography variant="body1" fontWeight="bold">
-                  Total: ₹{calculateItemTotal()}
-                </Typography>
-              </Box>
+              <IconButton 
+                color="error" 
+                onClick={() => onRemove(item._id)}
+                sx={{ ml: 'auto' }}
+              >
+                <DeleteIcon />
+              </IconButton>
             </Box>
-          }
-        />
-      </ListItem>
-    );
-  }
+          </Grid>
+        </Grid>
+      </CardContent>
+    </Card>
+  );
+}

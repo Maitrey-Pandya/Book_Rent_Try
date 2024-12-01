@@ -15,29 +15,21 @@ export function CartSummary({ cart, onCheckout }) {
   };
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Paper elevation={3} sx={{ p: 3 }}>
       <Typography variant="h6" gutterBottom>
         Order Summary
       </Typography>
-      <Box my={2}>
-        <Box display="flex" justifyContent="space-between" mb={1}>
-          <Typography>Subtotal</Typography>
-          <Typography>₹{calculateTotal()}</Typography>
-        </Box>
-        <Box display="flex" justifyContent="space-between">
-          <Typography>Delivery</Typography>
-          <Typography>Free</Typography>
-        </Box>
-      </Box>
-      <Divider />
-      <Box display="flex" justifyContent="space-between" my={2}>
-        <Typography variant="h6">Total</Typography>
-        <Typography variant="h6">₹{calculateTotal()}</Typography>
-      </Box>
-      <Button 
-        variant="contained" 
-        color="primary" 
+      <Typography variant="body1">
+        Total Items: {cart.items.length}
+      </Typography>
+      <Typography variant="h6" sx={{ mt: 2 }}>
+        Total: ₹{calculateTotal()}
+      </Typography>
+      <Button
+        variant="contained"
+        color="primary"
         fullWidth
+        sx={{ mt: 2 }}
         onClick={onCheckout}
       >
         Proceed to Checkout
