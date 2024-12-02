@@ -81,6 +81,13 @@ const bookSchema = new mongoose.Schema({
     enum: ['sale', 'lease', 'both'],
     required: true
   },
+  coverImage: {
+    type: String,
+    required: true,
+    default: function() {
+      return '/uploads/books/default-book-cover.jpg';
+    }
+  },
   price: {
     sale: {
       type: Number,
@@ -89,7 +96,7 @@ const bookSchema = new mongoose.Schema({
       }
     },
     lease: {
-      perDay: {
+      perMonth: {
         type: Number,
         required: function() {
           return this.listingType === 'lease' || this.listingType === 'both';
@@ -110,10 +117,15 @@ const bookSchema = new mongoose.Schema({
       return this.listingType === 'lease' || this.listingType === 'both';
     }
   },
+  condition: {
+    type: String,
+    required: true,
+    trim: true
+  },
   createdAt: {
     type: Date,
     default: Date.now
-  },
+  }
 });
 
 const Book = mongoose.model('Book', bookSchema);

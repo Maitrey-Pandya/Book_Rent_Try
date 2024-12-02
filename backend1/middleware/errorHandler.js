@@ -23,17 +23,23 @@ const handleJWTError = () => new AppError('Invalid token. Please log in again!',
 const handleJWTExpiredError = () => new AppError('Your token has expired! Please log in again.', 401);
 
 module.exports = (err, req, res, next) => {
+  console.error('Error:', err);
+
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
+  // Ensure we have a valid status code
+  const statusCode = typeof err.statusCode === 'number' ? err.statusCode : 500;
+
   if (process.env.NODE_ENV === 'development') {
-    res.status(err.statusCode).json({
+    res.status(statusCode).json({
       status: err.status,
       error: err,
       message: err.message,
       stack: err.stack
     });
-  } else if (process.env.NODE_ENV === 'production') {
+  } else {
+    // Production
     let error = { ...err };
     error.message = err.message;
 
@@ -44,7 +50,7 @@ module.exports = (err, req, res, next) => {
     if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
 
     if (error.isOperational) {
-      res.status(error.statusCode).json({
+      res.status(statusCode).json({
         status: error.status,
         message: error.message
       });

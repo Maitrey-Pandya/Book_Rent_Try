@@ -6,7 +6,8 @@ import {
     Grid, 
     Card, 
     CardContent, 
-    CardMedia 
+    CardMedia, 
+    useTheme 
   } from '@mui/material';
   import { useNavigate } from 'react-router-dom';
   import { useAuth } from '../contexts/AuthContext';
@@ -18,6 +19,7 @@ import {
   export function Home() {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const theme = useTheme();
   
     return (
       <Box position="relative">
@@ -25,10 +27,10 @@ import {
         <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 8 }}>
           <Container maxWidth="md">
             <Typography variant="h2" gutterBottom>
-              Welcome to Book Swap and Lease
+              Welcome to BookVerse
             </Typography>
             <Typography variant="h5" paragraph>
-              Your platform for swapping and leasing books with other readers.
+              Your platform for buying and leasing books with other readers.
             </Typography>
             {!user ? (
               <Button 
@@ -63,7 +65,11 @@ import {
         </Container>
   
         {/* How It Works Section */}
-        <Box sx={{ bgcolor: 'grey.100', py: 8 }}>
+        <Box sx={{ 
+          bgcolor: theme.palette.mode === 'dark' ? theme.palette.background.paper : 'grey.100', 
+          color: theme.palette.mode === 'dark' ? 'white' : 'inherit', 
+          py: 8 
+        }}>
           <Container>
             <Typography variant="h3" gutterBottom align="center">
               How It Works

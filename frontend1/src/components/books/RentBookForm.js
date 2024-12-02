@@ -50,7 +50,7 @@ export function RentBookForm() {
     price: {
       sale: 0,
       lease: {
-        perDay: 0,
+        perMonth: 0,
         minDuration: 1,
         maxDuration: 30,
         deposit: 0
@@ -63,6 +63,14 @@ export function RentBookForm() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        setError('Image size should be less than 5MB');
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        setError('Please upload an image file');
+        return;
+      }
       setFormData(prev => ({ ...prev, coverImage: file }));
       setPreview(URL.createObjectURL(file));
     }
@@ -96,7 +104,7 @@ export function RentBookForm() {
             : undefined,
           lease: formData.listingType === 'lease' || formData.listingType === 'both' 
             ? {
-                perDay: Number(formData.price.lease.perDay),
+                perMonth: Number(formData.price.lease.perMonth),
                 minDuration: Number(formData.price.lease.minDuration),
                 maxDuration: Number(formData.price.lease.maxDuration),
                 deposit: Number(formData.price.lease.deposit)
@@ -116,13 +124,15 @@ export function RentBookForm() {
       
       if (formData.coverImage) {
         formDataToSend.append('coverImage', formData.coverImage);
+        console.log('Appending coverImage:', formData.coverImage);
       }
+
+      console.log('Sending formData:', formDataToSend);
 
       const response = await api.post('/api/v1/books', formDataToSend, {
         headers: { 
           'Content-Type': 'multipart/form-data'
-        },
-        withCredentials: true
+        }
       });
 
       if (response.data.status === 'success') {
@@ -242,13 +252,13 @@ export function RentBookForm() {
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Rent per Day"
+                label="Rent per Month"
                 type="number"
                 InputProps={{
                   startAdornment: <InputAdornment position="start">₹</InputAdornment>,
                 }}
-                value={formData.price.lease.perDay}
-                onChange={(e) => handlePriceChange('lease', 'perDay', Number(e.target.value))}
+                value={formData.price.lease.perMonth}
+                onChange={(e) => handlePriceChange('lease', 'perMonth', Number(e.target.value))}
                 required
               />
             </Grid>
@@ -268,7 +278,7 @@ export function RentBookForm() {
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Minimum Rental Duration (days)"
+                label="Minimum Rental Duration (months)"
                 type="number"
                 value={formData.price.lease.minDuration}
                 onChange={(e) => handlePriceChange('lease', 'minDuration', Number(e.target.value))}
@@ -278,14 +288,14 @@ export function RentBookForm() {
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Maximum Rental Duration (days)"
+                label="Maximum Rental Duration (months)"
                 type="number"
                 value={formData.price.lease.maxDuration}
                 onChange={(e) => handlePriceChange('lease', 'maxDuration', Number(e.target.value))}
                 required
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Book Condition"

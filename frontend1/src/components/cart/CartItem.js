@@ -11,16 +11,42 @@ export function CartItem({ item, onUpdate, onRemove }) {
     return new Date(date).toLocaleDateString();
   };
 
+  // Just add this function
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return '/assets/book_cover_template.jpg';
+    
+    if (imageUrl.includes('cloudinary')) {
+      return imageUrl.replace('/upload/', '/upload/w_800,h_1200,c_fill,g_center,f_auto,q_auto/');
+    }
+    
+    return imageUrl;
+  };
+
   return (
     <Card sx={{ mb: 2, position: 'relative' }}>
       <CardContent>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={3}>
-            <img 
-              src={item.book.coverImage || '/assets/book_cover_template.jpg'} 
-              alt={item.book.title}
-              style={{ width: '100%', maxWidth: '120px' }}
-            />
+            <Box
+              sx={{
+                width: '100%',
+                maxWidth: '120px',
+                height: '180px',
+                borderRadius: 1,
+                overflow: 'hidden'
+              }}
+            >
+              {/* Just update the src here */}
+              <img 
+                src={getImageUrl(item.book.coverImage)}
+                alt={item.book.title}
+                style={{ 
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+              />
+            </Box>
           </Grid>
           <Grid item xs={12} sm={9}>
             <Typography variant="h6" gutterBottom>

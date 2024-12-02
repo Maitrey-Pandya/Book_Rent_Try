@@ -9,9 +9,7 @@ import {
   import {
     Person as PersonIcon,
     History as HistoryIcon,
-    Bookmark as BookmarkIcon,
-    Book as BookIcon,
-    Settings as SettingsIcon
+    Book as BookIcon
   } from '@mui/icons-material';
   import { useNavigate, useLocation } from 'react-router-dom';
   
@@ -20,9 +18,7 @@ import {
   const menuItems = [
     { text: 'Personal Info', icon: <PersonIcon />, path: '/profile' },
     { text: 'Transaction History', icon: <HistoryIcon />, path: '/transactions' },
-    { text: 'Bookmarks', icon: <BookmarkIcon />, path: '/bookmarks' },
-    { text: 'Rent Your Book', icon: <BookIcon />, path: '/rent-book' },
-    { text: 'Settings', icon: <SettingsIcon />, path: '/settings' }
+    { text: 'Rent Your Book', icon: <BookIcon />, path: '/rent-book' }
   ];
   
   export function Sidebar() {
