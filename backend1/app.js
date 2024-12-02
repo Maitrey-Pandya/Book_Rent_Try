@@ -22,7 +22,7 @@ app.use(helmet());
 app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(cors({
-    origin: ['https://book-rent-try.onrender.com', 'http://localhost:3000'],
+    origin: ['https://book-rent-try.onrender.com', 'http://localhost:3000','*'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 
