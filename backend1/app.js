@@ -16,13 +16,8 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-
-// Security middleware
-app.use(helmet());
-app.use(cookieParser());
-app.use(express.json({ limit: '10kb' }));
 app.use(cors({
-    origin: ['https://book-rent-try.onrender.com', 'http://localhost:3000','*'],
+    origin: ['https://book-rent-try.onrender.com', 'http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 
@@ -34,6 +29,12 @@ app.use(cors({
 }));
 
 // Make sure this comes BEFORE your routes
+app.options('*', cors());
+
+// Security middleware
+app.use(helmet());
+app.use(cookieParser());
+app.use(express.json({ limit: '10kb' }));
 
 
 // Rate limiting
