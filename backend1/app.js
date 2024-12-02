@@ -25,7 +25,7 @@ app.use(cors({
     origin: ['https://book-rent-try-backend.onrender.com', 'http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization','Access-Control-Allow-Origin','Cache-Control','Pragma','Expires']
 }));
 
 // Make sure this comes BEFORE your routes
