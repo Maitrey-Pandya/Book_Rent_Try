@@ -31,12 +31,12 @@ exports.login = async (req, res, next) => {
         // Set HTTP-only cookie
         res.cookie('auth_token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'development',
+            secure: false,
             sameSite: 'None',
             maxAge: 3600000,
             path: '/'
         });
-
+        console.log('Token set:', token);
         res.json({
             status: 'success',
             user: {
