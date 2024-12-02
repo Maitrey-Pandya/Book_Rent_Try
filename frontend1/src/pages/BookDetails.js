@@ -16,6 +16,7 @@ import { useAuth } from '../contexts/AuthContext';
 import  api  from '../api/axios';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { format } from 'date-fns';
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
@@ -26,6 +27,7 @@ export function BookDetails() {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     fetchBookDetails();
@@ -74,6 +76,15 @@ export function BookDetails() {
     } catch (error) {
       console.error('Error adding to cart:', error.response || error);
       setError(error.response?.data?.message || 'Failed to add item to cart');
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await api.delete(`/api/v1/books/${id}`);
+      navigate('/books');
+    } catch (error) {
+      console.error('Error deleting book:', error);
     }
   };
 
@@ -236,56 +247,75 @@ export function BookDetails() {
 
             <Box sx={{ mt: 4, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
               {book.uploader?._id === user?.id ? (
+                <>
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={() => setOpenDialog(true)}
+                  sx={{
+                    minWidth: 200,
+                    py: 1.5,
+                    fontSize: '1.1rem',
+                    boxShadow: 2,
+                    '&:hover': {
+                      boxShadow: 4,
+                      transform: 'translateY(-2px)',
+                    },
+                    transition: 'all 0.2s ease-in-out'
+                  }}
+                >
+                  Delete Listing
+                </Button>
+            
+                {/* Confirmation Dialog */}
+                <Dialog
+                  open={openDialog}
+                  onClose={() => setOpenDialog(false)}
+                >
+                  <DialogTitle>Delete Book Listing</DialogTitle>
+                  <DialogContent>
+                    <DialogContentText>
+                      Are you sure you want to delete this book listing? This action cannot be undone.
+                    </DialogContentText>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+                    <Button 
+                      onClick={() => {
+                        handleDelete();
+                        setOpenDialog(false);
+                      }} 
+                      color="error" 
+                      autoFocus
+                    >
+                      Delete
+                    </Button>
+                  </DialogActions>
+                </Dialog>
+              </>
+            ) : (
+              book.status === 'available' && (
                 <Button
                   variant="contained"
                   color="primary"
-                  onClick={() => navigate(`/books/${id}/edit`)}
+                  onClick={() => handleAddToCart(book.listingType === 'lease' ? 'rent' : 'purchase')}
+                  startIcon={<ShoppingCartIcon />}
+                  sx={{
+                    minWidth: 200,
+                    py: 1.5,
+                    fontSize: '1.1rem',
+                    boxShadow: 2,
+                    '&:hover': {
+                      boxShadow: 4,
+                      transform: 'translateY(-2px)',
+                    },
+                    transition: 'all 0.2s ease-in-out'
+                  }}
                 >
-                  Edit Listing
+                  Add to Cart
                 </Button>
-              ) : (
-                book.status === 'available' && (
-                  <>
-                    <ButtonGroup variant="contained">
-                      {['sale', 'both'].includes(book.listingType) && (
-                        <Button
-                          onClick={() => handleAddToCart('purchase')}
-                          startIcon={<ShoppingCartIcon />}
-                        >
-                          Buy Now
-                        </Button>
-                      )}
-                      {['lease', 'both'].includes(book.listingType) && (
-                        <Button
-                          onClick={() => handleAddToCart('rent')}
-                          startIcon={<ShoppingCartIcon />}
-                        >
-                          Rent Now
-                        </Button>
-                      )}
-                    </ButtonGroup>
-                    
-                    <ButtonGroup variant="outlined">
-                      {['sale', 'both'].includes(book.listingType) && (
-                        <Button
-                          onClick={() => handleAddToCart('purchase')}
-                          startIcon={<ShoppingCartIcon />}
-                        >
-                          Add to Cart
-                        </Button>
-                      )}
-                      {['lease', 'both'].includes(book.listingType) && (
-                        <Button
-                          onClick={() => handleAddToCart('rent')}
-                          startIcon={<ShoppingCartIcon />}
-                        >
-                          Add to Rent Cart
-                        </Button>
-                      )}
-                    </ButtonGroup>
-                  </>
-                )
-              )}
+              )
+            )}
             </Box>
           </Grid>
         </Grid>
