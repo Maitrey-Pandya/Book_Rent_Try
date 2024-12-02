@@ -36,6 +36,12 @@ const limiter = rateLimit({
     max: 100 // limit each IP to 100 requests per windowMs
 });
 
+// Add this before your routes
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Credentials', 'true');
+    next();
+});
+
 app.use('/api/', limiter);
 
 // Connect to MongoDB with updated options
