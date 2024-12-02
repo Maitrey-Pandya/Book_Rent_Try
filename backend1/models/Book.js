@@ -117,6 +117,11 @@ const bookSchema = new mongoose.Schema({
       return this.listingType === 'lease' || this.listingType === 'both';
     }
   },
+  condition: {
+    type: String,
+    required: true,
+    trim: true
+  },
   createdAt: {
     type: Date,
     default: Date.now

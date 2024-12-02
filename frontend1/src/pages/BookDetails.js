@@ -221,17 +221,11 @@ export function BookDetails() {
                 <Grid item xs={6}>
                   <Typography><strong>ISBN:</strong> {book.isbn || 'N/A'}</Typography>
                   <Typography><strong>Genre:</strong> {book.genre || 'N/A'}</Typography>
-                  <Typography><strong>Status:</strong> {book.status}</Typography>
-                  <Typography><strong>Listed On:</strong> {formatDate(book.createdAt)}</Typography>
+                  <Typography>
+                    Listed on: {book.createdAt ? formatDate(book.createdAt) : 'N/A'}
+                  </Typography>
                 </Grid>
                 <Grid item xs={6}>
-                  <Typography>
-                    <strong>Publisher:</strong> {
-                      book.uploaderType === 'Publisher' 
-                        ? book.uploader?.publisherName || book.uploader?.name
-                        : book.publisher?.publisherName || book.publisher?.name || 'N/A'
-                    }
-                  </Typography>
                   <Typography>
                     <strong>Uploaded by:</strong> {
                       book.uploaderType === 'Publisher'

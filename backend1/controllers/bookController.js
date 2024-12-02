@@ -79,7 +79,7 @@ exports.getBooks = catchAsync(async (req, res, next) => {
 
 exports.getBook = catchAsync(async (req, res, next) => {
   const book = await Book.findById(req.params.id)
-    .select('isbn title author genre description rating totalRatings status listingType price uploader uploaderType publisher coverImage')
+    .select('isbn title author genre description rating totalRatings status listingType price uploader uploaderType publisher coverImage condition createdAt')
     .populate({
       path: 'uploader',
       select: 'name publisherName'
