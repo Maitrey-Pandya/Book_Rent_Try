@@ -8,9 +8,7 @@ import {
   Avatar,
   Menu,
   MenuItem,
-  Box,
-  Tooltip,
-  Zoom
+  Box
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -74,7 +72,7 @@ export function Navbar() {
           sx={{ cursor: 'pointer', mr: 2 }}
           onClick={() => navigate('/')}
         >
-          Book Swap and Lease
+          BookVerse
         </Typography>
 
         <Box sx={{ 
