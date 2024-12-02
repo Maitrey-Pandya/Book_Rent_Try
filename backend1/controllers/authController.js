@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const Publisher = require('../models/Publisher');
-const { generateToken, setTokenCookie, clearTokenCookie } = require('../utils/jwt');
+const { generateToken } = require('../utils/jwt');
 const { emailValidator } = require('../utils/validators');
 const AppError = require('../utils/AppError');
 
@@ -28,11 +28,14 @@ exports.login = async (req, res, next) => {
             role: user instanceof Publisher ? 'publisher' : 'user'
         });
 
-        // Set cookie
-        setTokenCookie(res, token);
-
-        // Remove password from output
-        user.password = undefined;
+        // Set HTTP-only cookie
+        res.cookie('auth_token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 3600000,
+            path: '/'
+        });
 
         res.json({
             status: 'success',
@@ -49,12 +52,23 @@ exports.login = async (req, res, next) => {
     }
 };
 
-exports.logout = (req, res) => {
-    clearTokenCookie(res);
-    res.status(200).json({
-        status: 'success',
-        message: 'Logged out successfully'
-    });
+exports.logout = async (req, res, next) => {
+    try {
+        // Clear the auth token cookie
+        res.cookie('auth_token', 'logged_out', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            expires: new Date(Date.now() + 1000) // Cookie expires in 1 second
+        });
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Successfully logged out'
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
 // Optional: Add refresh token functionality
