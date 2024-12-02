@@ -1,12 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/axios';
-import axios from 'axios';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,17 +13,13 @@ export function AuthProvider({ children }) {
 
   const checkAuth = async () => {
     try {
-      const savedToken = localStorage.getItem('token');
-      if (savedToken) {
-        setToken(savedToken);
-        api.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
-        const response = await api.get('/api/v1/users/me');
+      const response = await api.get('/api/auth/me');
+      if (response.data.status === 'success') {
         setUser(response.data.data.user);
       }
     } catch (error) {
-      localStorage.removeItem('token');
-      setToken(null);
-      delete api.defaults.headers.common['Authorization'];
+      console.error('Auth check failed:', error);
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -33,8 +27,6 @@ export function AuthProvider({ children }) {
 
   const signup = async (userData) => {
     try {
-      console.log('Sending signup data:', userData);
-      
       const isPublisher = userData.publisherName ? true : false;
       const endpoint = isPublisher ? '/api/publisher/signup' : '/api/user/signup';
       
@@ -58,90 +50,60 @@ export function AuthProvider({ children }) {
         role: 'user'
       };
 
-      console.log('Endpoint:', endpoint);
-      console.log('Signup Data:', signupData);
-      
       const response = await api.post(endpoint, signupData);
       
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('userRole', isPublisher ? 'publisher' : 'user');
-        setUser({
-          ...response.data.user,
-          role: isPublisher ? 'publisher' : 'user'
-        });
+      if (response.data.status === 'success') {
+        setUser(response.data.data.user);
+        sessionStorage.setItem('userRole', isPublisher ? 'publisher' : 'user');
       }
       
       return response.data;
     } catch (error) {
-      console.error('Signup error:', error.response?.data || error);
+      console.error('Signup error:', error);
       throw error;
-    }
-  };
-
-  const handleAuthResponse = (response) => {
-    if (response.data.status === 'success') {
-      setUser(response.data.user || response.data.publisher);
     }
   };
 
   const login = async (email, password) => {
     try {
-      console.log('Attempting login with:', { email });
       const response = await api.post('/api/auth/login', { 
         email, 
         password 
-      }, {
-        withCredentials: true
       });
       
-      console.log('Login response:', response.data);
-      
       if (response.data.status === 'success') {
-        const { user } = response.data;
-        setUser(user);
+        setUser(response.data.data.user);
+        sessionStorage.setItem('userRole', response.data.data.user.role);
         return response.data;
-      } else {
-        throw new Error(response.data.message || 'Login failed');
       }
+      
+      throw new Error(response.data.message || 'Login failed');
     } catch (error) {
-      console.error('Login error:', error.response?.data || error.message);
+      console.error('Login error:', error);
       throw error;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    delete api.defaults.headers.common['Authorization'];
-    setUser(null);
-  };
-
-  const testAuth = async () => {
+  const logout = async () => {
     try {
-      const response = await api.get('/api/auth/test-auth', {
-        withCredentials: true
-      });
-      console.log('Auth test response:', response.data);
-      return response.data;
+      await api.post('/api/auth/logout');
+      setUser(null);
+      sessionStorage.removeItem('userRole');
     } catch (error) {
-      console.error('Auth test error:', error.response?.data || error.message);
-      throw error;
+      console.error('Logout error:', error);
     }
   };
 
   const isPublisher = () => {
-    return user?.role === 'publisher' || localStorage.getItem('userRole') === 'publisher';
+    return user?.role === 'publisher' || sessionStorage.getItem('userRole') === 'publisher';
   };
 
   const value = {
     user,
-    token,
     loading,
     login,
     logout,
     signup,
-    testAuth,
     isPublisher
   };
 
