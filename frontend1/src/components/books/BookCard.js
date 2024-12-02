@@ -87,7 +87,7 @@ export function BookCard({ book }) {
             )}
             {book.listingType === 'lease' && (
               <Typography variant="body2">
-                Rent: ₹{book.price.lease.perDay}/day
+                Rent: ₹{book.price.lease.perMonth}/month
               </Typography>
             )}
             {book.listingType === 'both' && (
@@ -96,7 +96,7 @@ export function BookCard({ book }) {
                   Buy: ₹{book.price.sale}
                 </Typography>
                 <Typography variant="body2">
-                  Rent: ₹{book.price.lease.perDay}/day
+                  Rent: ₹{book.price.lease.perMonth}/month
                 </Typography>
               </>
             )}
@@ -116,13 +116,13 @@ export function BookCard({ book }) {
           {['lease', 'both'].includes(book.listingType) && (
             <>
               <Chip 
-                label={`Rent: ₹${book.price?.lease?.perDay}/day`}
+                label={`Rent: ₹${book.price?.lease?.perMonth}/month`}
                 color="primary"
                 variant="outlined"
                 size="small"
               />
               <Typography variant="caption" color="text.secondary">
-                Rental Duration: {book.price?.lease?.minDuration || 1} - {book.price?.lease?.maxDuration || 'No limit'} days
+                Rental Duration: {book.price?.lease?.minDuration || 1} - {book.price?.lease?.maxDuration || 'No limit'} months
               </Typography>
             </>
           )}
