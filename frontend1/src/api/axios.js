@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import {api} from 'api';
 const instance = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'https://book-rent-try-backend.onrender.com' ,
   withCredentials: true,
