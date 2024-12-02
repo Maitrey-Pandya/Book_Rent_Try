@@ -16,11 +16,6 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-
-// Security middleware
-app.use(helmet());
-app.use(cookieParser());
-app.use(express.json({ limit: '10kb' }));
 app.use(cors({
     origin:process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
@@ -28,6 +23,11 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization','Access-Control-Allow-Origin','Access-Control-Allow-Credentials','Access-Control-Allow-Headers'],
     exposedHeaders: ['set-cookie']
   }));
+// Security middleware
+app.use(helmet());
+app.use(cookieParser());
+app.use(express.json({ limit: '10kb' }));
+
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -81,7 +81,7 @@ app.use((err, req, res, next) => {
 });
 
 // Define port
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5001;
 
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
