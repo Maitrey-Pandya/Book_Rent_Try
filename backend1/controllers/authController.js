@@ -34,6 +34,7 @@ exports.login = async (req, res, next) => {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'None',
             maxAge: 3600000,
+            partitioned: true,
             path: '/'
         });
         console.log('Token set:', token);
