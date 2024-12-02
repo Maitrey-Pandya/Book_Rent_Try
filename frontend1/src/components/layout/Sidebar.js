@@ -29,12 +29,18 @@ import {
       <Drawer
         variant="permanent"
         sx={{
+          display: { xs: 'none', sm: 'block' },  // Hide on mobile, show on desktop
           width: drawerWidth,
           flexShrink: 0,
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
-            marginTop: '64px' // Height of AppBar
+            marginTop: '64px', // Height of AppBar
+            height: 'calc(100% - 64px)',  // Subtract AppBar height
+            position: 'fixed',
+            border: '1px solid rgba(0, 0, 0, 0.12)',  // Add subtle border
+            backgroundColor: 'background.paper',
+            zIndex: (theme) => theme.zIndex.drawer
           }
         }}
       >
@@ -44,6 +50,11 @@ import {
               <ListItemButton
                 selected={location.pathname === item.path}
                 onClick={() => navigate(item.path)}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: 'action.selected'
+                  }
+                }}
               >
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} />

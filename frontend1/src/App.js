@@ -29,10 +29,11 @@ function ThemedApp() {
                   flexGrow: 1,
                   p: 3,
                   mt: 2,
-                  ml: { xs: 0, sm: '240px' },
-                  width: { sm: `calc(100% - 240px)` },
-                  maxWidth: 1200,
-                  mx: 'auto'
+                  ml: { xs: 0, sm: '1%' },
+                  width: { xs: '100%', sm: `calc(100% - 1%)` },
+                  maxWidth: { sm: 'calc(1200px + 1%)' },
+                  mx: 'auto',
+                  boxSizing: 'border-box'
                 }}
               >
                 <AppRoutes />

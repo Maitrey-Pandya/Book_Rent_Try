@@ -12,13 +12,22 @@ import {
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { SearchBar } from '../common/SearchBar';
+import MenuIcon from '@mui/icons-material/Menu';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 
 export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { mode, updateTheme } = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
+
+  const toggleColorMode = () => {
+    updateTheme(mode === 'light' ? 'dark' : 'light');
+  };
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -47,13 +56,23 @@ export function Navbar() {
   return (
     <AppBar position="static">
       <Toolbar>
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          edge="start"
+          onClick={() => navigate('/')}
+          sx={{ mr: 2 }}
+        >
+          <MenuIcon />
+        </IconButton>
+
         <Typography
           variant="h6"
           component="div"
           sx={{ cursor: 'pointer', mr: 2 }}
           onClick={() => navigate('/')}
         >
-          Book Swap and Lease
+          BookVerse
         </Typography>
 
         <Box sx={{ 
@@ -72,6 +91,19 @@ export function Navbar() {
 
         {user ? (
           <>
+            <IconButton 
+              color="inherit" 
+              onClick={toggleColorMode}
+              sx={{ 
+                mr: 2,
+                transition: 'transform 0.3s ease-in-out',
+                '&:hover': {
+                  transform: 'rotate(30deg)'
+                }
+              }}
+            >
+              {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
+            </IconButton>
             <IconButton onClick={handleMenu} color="inherit">
               <Avatar src="/assets/user_photo_template.webp" alt={user.name} />
             </IconButton>
@@ -94,6 +126,13 @@ export function Navbar() {
           </>
         ) : (
           <>
+            <IconButton 
+              color="inherit" 
+              onClick={toggleColorMode}
+              sx={{ mr: 2 }}
+            >
+              {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
+            </IconButton>
             <Button color="inherit" onClick={() => navigate('/login')}>
               Login
             </Button>
