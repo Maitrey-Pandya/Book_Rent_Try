@@ -23,6 +23,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization','Access-Control-Allow-Origin','Access-Control-Allow-Credentials','Access-Control-Allow-Headers'],
     exposedHeaders: ['set-cookie']
   }));
+// Enable pre-flight requests for all routes
+app.options('*', cors());
 // Security middleware
 app.use(helmet());
 app.use(cookieParser());
