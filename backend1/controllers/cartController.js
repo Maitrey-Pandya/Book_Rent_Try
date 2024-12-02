@@ -24,78 +24,71 @@ exports.getCart = catchAsync(async (req, res, next) => {
 });
 
 exports.addToCart = catchAsync(async (req, res, next) => {
-  const { bookId, quantity, type, rentalDuration } = req.body;
-  console.log('Received request to add to cart:', { bookId, type, userId: req.user.id });
+  try {
+    const { bookId, quantity, type, rentalDuration } = req.body;
+    const userId = req.user._id;
 
-  // Validate book availability
-  const book = await Book.findById(bookId);
-  if (!book) {
-    console.log('Book not found:', bookId);
-    return next(new AppError('Book not found', 404));
-  }
-
-  if (book.status !== 'available') {
-    console.log('Book not available:', book.status);
-    return next(new AppError('Book is not available', 400));
-  }
-
-  // Check if book already exists in user's cart (with improved query)
-  const existingCart = await Cart.findOne({
-    user: req.user.id,
-    'items.book': bookId,
-    'items.type': type // Also check the type (rent/purchase)
-  });
-
-  console.log('Existing cart check:', {
-    exists: !!existingCart,
-    userId: req.user.id,
-    bookId,
-    type
-  });
-
-  if (existingCart) {
-    console.log('Book already in cart:', {
-      cartId: existingCart._id,
-      items: existingCart.items
-    });
-    return next(new AppError('This book is already in your cart', 400));
-  }
-
-  let cart = await Cart.findOne({ user: req.user.id });
-  console.log('Found user cart:', cart?._id);
-
-  if (!cart) {
-    cart = await Cart.create({
-      user: req.user.id,
-      items: []
-    });
-    console.log('Created new cart:', cart._id);
-  }
-
-  // Calculate price based on type
-  const price = type === 'rent' ? book.price.lease.perDay : book.price.sale;
-
-  // Add new item
-  const newItem = {
-    book: bookId,
-    quantity: 1,
-    type,
-    price,
-    ...(type === 'rent' && { rentalDuration })
-  };
-
-  cart.items.push(newItem);
-  console.log('Added new item to cart:', newItem);
-
-  await cart.save();
-  console.log('Saved cart successfully');
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      cart
+    // Find the book first
+    const book = await Book.findById(bookId);
+    if (!book) {
+      return next(new AppError('Book not found', 404));
     }
-  });
+
+    // Calculate price based on type
+    let price;
+    if (type === 'purchase') {
+      price = book.price.sale;
+    } else if (type === 'rent') {
+      price = book.price.lease.perMonth;
+    } else {
+      return next(new AppError('Invalid type specified', 400));
+    }
+
+    // Find existing cart or create new one
+    let cart = await Cart.findOne({ user: userId });
+    if (!cart) {
+      cart = await Cart.create({ 
+        user: userId,
+        items: [],
+        totalAmount: 0
+      });
+    }
+
+    // Check if item already exists in cart
+    const existingItemIndex = cart.items.findIndex(
+      item => item.book.toString() === bookId && item.type === type
+    );
+
+    if (existingItemIndex > -1) {
+      return next(new AppError('This book is already in your cart', 400));
+    }
+
+    // Add new item to cart
+    cart.items.push({
+      book: bookId,
+      quantity,
+      type,
+      price,
+      rentalDuration
+    });
+
+    // Recalculate total amount
+    cart.totalAmount = cart.items.reduce((total, item) => {
+      return total + (item.price * item.quantity);
+    }, 0);
+
+    await cart.save();
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        cart
+      }
+    });
+  } catch (error) {
+    console.error('Add to cart error:', error);
+    next(error);
+  }
 });
 
 exports.updateCartItem = catchAsync(async (req, res, next) => {
