@@ -22,12 +22,15 @@ app.use(helmet());
 app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: ['https://book-rent-try-backend.onrender.com', 'http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    exposedHeaders: ['set-cookie']
-  }));
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Make sure this comes BEFORE your routes
+app.options('*', cors());
+
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
