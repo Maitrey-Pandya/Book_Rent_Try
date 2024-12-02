@@ -32,7 +32,7 @@ exports.login = async (req, res, next) => {
         res.cookie('auth_token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            sameSite: 'none',
             maxAge: 3600000,
             path: '/'
         });
@@ -58,7 +58,7 @@ exports.logout = async (req, res, next) => {
         res.cookie('auth_token', 'logged_out', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'none',
             expires: new Date(Date.now() + 1000) // Cookie expires in 1 second
         });
 
