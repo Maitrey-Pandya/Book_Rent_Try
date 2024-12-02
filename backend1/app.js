@@ -29,7 +29,7 @@ app.use(cors({
 }));
 
 // Make sure this comes BEFORE your routes
-app.options('*', cors());
+
 
 // Rate limiting
 const limiter = rateLimit({
