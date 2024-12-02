@@ -1,34 +1,37 @@
 // src/middleware/authMiddleware.js
-const jwt = require('jsonwebtoken');
+const { verifyToken } = require('../utils/jwt');
 const User = require('../models/User');
 const Publisher = require('../models/Publisher');
 const AppError = require('../utils/AppError');
 
 exports.protect = async (req, res, next) => {
   try {
-    // Get token from cookie or header
-    const token = req.cookies.auth_token || req.headers.authorization?.split(' ')[1];
+    // Get token from cookie
+    const token = req.cookies.auth_token;
     
     if (!token) {
-      throw new AppError('Authentication required', 401);
+      return next(new AppError('Please log in to access this resource', 401));
     }
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Check user type based on role
-    const Model = decoded.role === 'publisher' ? Publisher : User;
-    const user = await Model.findById(decoded.userId);
+    const decoded = verifyToken(token);
 
+    // Check if user still exists
+    const user = await User.findById(decoded.id);
     if (!user) {
-      throw new AppError('User no longer exists', 401);
+      return next(new AppError('User no longer exists', 401));
     }
 
+    // Check if user changed password after token was issued
+    if (user.passwordChangedAfter && user.passwordChangedAfter(decoded.iat)) {
+      return next(new AppError('Password recently changed. Please log in again', 401));
+    }
+
+    // Grant access to protected route
     req.user = user;
-    req.userRole = decoded.role;
     next();
   } catch (error) {
-    next(new AppError('Invalid token', 401));
+    return next(new AppError(error.message, 401));
   }
 };
 
