@@ -36,15 +36,7 @@ export function SignUpOptions() {
             Sign Up as Reader
           </Button>
           
-          <Button
-            variant="outlined"
-            size="large"
-            startIcon={<StoreIcon />}
-            onClick={() => setSelectedRole('publisher')}
-            sx={{ py: 2 }}
-          >
-            Sign Up as Publisher
-          </Button>
+          
         </Box>
       </Paper>
     </Container>
