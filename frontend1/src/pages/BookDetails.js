@@ -159,13 +159,13 @@ export function BookDetails() {
               {['lease', 'both'].includes(book.listingType) && (
                 <>
                   <Chip 
-                    label={`Rent: ₹${book.price?.lease?.perDay}/day`} 
+                    label={`Rent: ₹${book.price?.lease?.perMonth}/month`} 
                     color="primary" 
                     variant="outlined"
                     sx={{ mb: 1, width: '100%' }}
                   />
                   <Typography variant="body2">
-                    Rental Duration: {book.price?.lease?.minDuration || 1} - {book.price?.lease?.maxDuration || 'No limit'} days
+                    Rental Duration: {book.price?.lease?.minDuration || 1} - {book.price?.lease?.maxDuration || 'No limit'} months
                   </Typography>
                 </>
               )}

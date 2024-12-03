@@ -23,10 +23,10 @@ export function RentBookDialog({ book, open, onClose }) {
 
   const minDuration = book?.price?.lease?.minDuration || 1;
   const maxDuration = book?.price?.lease?.maxDuration || 30;
-  const perDayPrice = book?.price?.lease?.perDay || 0;
+  const perMonthPrice = book?.price?.lease?.perMonth || 0;
   const deposit = book?.price?.lease?.deposit || 0;
 
-  const totalPrice = duration * perDayPrice;
+  const totalPrice = duration * perMonthPrice;
 
   const handleAddToCart = async () => {
     try {
@@ -108,19 +108,19 @@ export function RentBookDialog({ book, open, onClose }) {
         
         <Box sx={{ mb: 2 }}>
           <Typography variant="body1" gutterBottom>
-            Price per day: ₹{perDayPrice}
+            Price per month: ₹{perMonthPrice}
           </Typography>
           <Typography variant="body1" gutterBottom>
             Security deposit: ₹{deposit}
           </Typography>
           <Typography variant="body1" gutterBottom>
-            Duration allowed: {minDuration} - {maxDuration} days
+            Duration allowed: {minDuration} - {maxDuration} months
           </Typography>
         </Box>
 
         <TextField
           fullWidth
-          label="Rental Duration (days)"
+          label="Rental Duration (months)"
           type="number"
           value={duration}
           onChange={(e) => setDuration(e.target.value)}

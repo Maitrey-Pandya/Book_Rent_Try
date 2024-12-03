@@ -192,7 +192,7 @@ exports.getAllBooks = async (req, res, next) => {
       switch (field) {
         case 'price':
           sortObj = req.query.listingType === 'lease' 
-            ? { 'price.lease.perDay': sortOrder }
+            ? { 'price.lease.perMonth': sortOrder }
             : { 'price.sale': sortOrder };
           break;
         case 'rating':

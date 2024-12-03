@@ -57,8 +57,8 @@ const cartSchema = new mongoose.Schema({
 cartSchema.pre('save', function(next) {
   this.totalAmount = this.items.reduce((total, item) => {
     if (item.type === 'rent') {
-      const days = Math.ceil((item.rentalDuration.endDate - item.rentalDuration.startDate) / (1000 * 60 * 60 * 24));
-      return total + (item.price * days * item.quantity);
+      const months = Math.ceil((item.rentalDuration.endDate - item.rentalDuration.startDate) / (1000 * 60 * 60 * 24));
+      return total + (item.price * months * item.quantity);
     }
     return total + (item.price * item.quantity);
   }, 0);

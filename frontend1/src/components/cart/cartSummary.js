@@ -4,11 +4,11 @@ export function CartSummary({ cart, onCheckout }) {
   const calculateTotal = () => {
     return cart.items.reduce((total, item) => {
       if (item.type === 'rent') {
-        const days = Math.ceil(
+        const months = Math.ceil(
           (new Date(item.rentalDuration.endDate) - new Date(item.rentalDuration.startDate)) 
           / (1000 * 60 * 60 * 24)
         );
-        return total + (item.price * days * item.quantity);
+        return total + (item.price * months * item.quantity);
       }
       return total + (item.price * item.quantity);
     }, 0);
