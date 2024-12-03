@@ -231,6 +231,12 @@ export function BookDetails() {
                   <Typography><strong>ISBN:</strong> {book.isbn || 'N/A'}</Typography>
                   <Typography><strong>Genre:</strong> {book.genre || 'N/A'}</Typography>
                   <Typography><strong>Listed On:</strong> {new Date(book.createdAt).toLocaleDateString()}</Typography>
+                  <Typography><strong>Condition:</strong> {book.condition || 'N/A'}</Typography>
+                  {book.conditionDescription && (
+                    <Typography>
+                      <strong>Condition Details:</strong> {book.conditionDescription}
+                    </Typography>
+                  )}
                 </Grid>
 
                 {/* Right Column */}
@@ -243,12 +249,6 @@ export function BookDetails() {
                     }
                   </Typography>
                   <Typography><strong>Listing Type:</strong> {book.listingType}</Typography>
-                  <Typography><strong>Condition:</strong> {book.condition || 'N/A'}</Typography>
-                  {book.conditionDescription && (
-                    <Typography>
-                      <strong>Condition Details:</strong> {book.conditionDescription}
-                    </Typography>
-                  )}
                   
                   {['lease', 'both'].includes(book.listingType) && (
                     <>
