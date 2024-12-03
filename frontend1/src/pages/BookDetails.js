@@ -127,6 +127,8 @@ export function BookDetails() {
 
   if (!book) return null;
 
+  console.log('Book cover image URL:', book.coverImage);
+
   return (
     <Container maxWidth="md">
       <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
@@ -134,26 +136,36 @@ export function BookDetails() {
           <Grid item xs={12} md={4}>
           <Box
               sx={{
+                position: 'relative',
                 width: '100%',
-                height: '400px', // Fixed height
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
+                maxWidth: '500px',
+                margin: '0 auto',
+                borderRadius: '12px',
                 overflow: 'hidden',
-                borderRadius: 2,
-                bgcolor: 'background.paper',
-                boxShadow: 1,
+                boxShadow: 3,
+                '&::before': {
+                  content: '""',
+                  display: 'block',
+                  paddingTop: '150%'
+                }
               }}
             >
               <img
-                src={getImageUrl(book.coverImage) || '/assets/book_cover_template.jpg'}
+                src={getImageUrl(book.coverImage)}
                 alt={book.title}
-                style={{
+                style={{ 
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
                   width: '100%',
                   height: '100%',
-                  objectFit: 'contain', // This ensures the image maintains its aspect ratio
-                  maxWidth: '300px', // Maximum width of the image
-                  padding: '8px'
+                  objectFit: 'cover',
+                  backgroundColor: 'rgba(0,0,0,0.03)'
+                }}
+                onError={(e) => {
+                  console.log('Image load error in details page');
+                  e.target.onerror = null;
+                  e.target.src = '/assets/book_cover_template.jpg';
                 }}
               />
             </Box>

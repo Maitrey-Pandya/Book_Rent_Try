@@ -16,6 +16,11 @@ exports.addBook = catchAsync(async (req, res, next) => {
     return next(new AppError('Invalid book data format', 400));
   }
 
+  if (!req.file) {
+    return next(new AppError('Cover image is required', 400));
+  }
+
+
   const uploaderType = req.user.role === 'publisher' ? 'Publisher' : 'User';
   
   // Combine the parsed data with user info
@@ -23,13 +28,10 @@ exports.addBook = catchAsync(async (req, res, next) => {
     ...bookData,
     uploader: req.user.id,
     uploaderType,
-    publisher: uploaderType === 'Publisher' ? req.user.id : bookData.publisher
+    publisher: uploaderType === 'Publisher' ? req.user.id : bookData.publisher,
+    coverImage: req.file.path || req.file.secure_url
   };
 
-  // Add cover image if it exists
-  if (req.files && req.files.coverImage) {
-    finalBookData.coverImage = req.files.coverImage[0].filename;
-  }
 
   console.log('Final book data to save:', finalBookData);
 
@@ -67,7 +69,7 @@ exports.bulkAddBooks = catchAsync(async (req, res, next) => {
 
 exports.getBooks = catchAsync(async (req, res, next) => {
     const books = await Book.find()
-      .select('isbn title author genre description rating totalRatings status listingType price createdAt condition leaseTerms')
+      .select('isbn title author genre description rating totalRatings status listingType price coverImage createdAt condition leaseTerms')
       .populate('uploader')
       .populate('publisher');
     console.log(books);
@@ -83,7 +85,7 @@ exports.getBooks = catchAsync(async (req, res, next) => {
 exports.getBook = catchAsync(async (req, res, next) => {
   try {
     const book = await Book.findById(req.params.id)
-      .select('isbn title author genre description rating totalRatings status listingType price uploader uploaderType publisher createdAt condition leaseTerms')
+      .select('isbn title author genre description rating totalRatings status listingType price uploader uploaderType publisher coverImage createdAt condition leaseTerms')
       .populate({
         path: 'uploader',
         select: 'name publisherName'
