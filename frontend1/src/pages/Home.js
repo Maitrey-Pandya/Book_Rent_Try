@@ -14,6 +14,16 @@ import {
   import { CartButton } from '../components/cart/CartButton';
   
   const teamMembers = [
+    'Ansh Garg',
+    'Maitrey Pandya',
+    'Prerak Dave',
+    'Varnika Chhawcharia',
+    'Yash Mehta',
+    'Kushang Chhabria',
+    'Shourya Nahar',
+    'Keyur Padia',
+    'Krushnadev Rayjada',
+    'Shashwat Menon'
   ];
   
   export function Home() {
@@ -85,25 +95,12 @@ import {
           <Typography variant="h3" gutterBottom align="center">
             Our Team
           </Typography>
-          <Grid container spacing={4} justifyContent="center">
-            {teamMembers.map((member) => (
-              <Grid item key={member.name} xs={12} sm={6} md={3}>
-                <Card>
-                  <CardMedia
-                    component="img"
-                    height="200"
-                    image="/user-profile.png"
-                    alt={member.name}
-                  />
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      {member.name}
-                    </Typography>
-                    <Typography color="text.secondary">
-                      {member.role}
-                    </Typography>
-                  </CardContent>
-                </Card>
+          <Grid container spacing={2} justifyContent="center">
+            {teamMembers.map((name) => (
+              <Grid item key={name} xs={12} sm={6} md={3}>
+                <Typography variant="h6" align="center">
+                  {name}
+                </Typography>
               </Grid>
             ))}
           </Grid>
