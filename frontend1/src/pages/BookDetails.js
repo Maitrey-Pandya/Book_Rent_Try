@@ -228,49 +228,18 @@ export function BookDetails() {
                   color="primary"
                   onClick={() => navigate(`/books/${id}/edit`)}
                 >
-                  Edit Listing
+                  Done
                 </Button>
               ) : (
                 book.status === 'available' && (
-                  <>
-                    <ButtonGroup variant="contained">
-                      {['sale', 'both'].includes(book.listingType) && (
-                        <Button
-                          onClick={() => handleAddToCart('purchase')}
-                          startIcon={<ShoppingCartIcon />}
-                        >
-                          Buy Now
-                        </Button>
-                      )}
-                      {['lease', 'both'].includes(book.listingType) && (
-                        <Button
-                          onClick={handleRentClick}
-                          startIcon={<ShoppingCartIcon />}
-                        >
-                          Rent Now
-                        </Button>
-                      )}
-                    </ButtonGroup>
-                    
-                    <ButtonGroup variant="outlined">
-                      {['sale', 'both'].includes(book.listingType) && (
-                        <Button
-                          onClick={() => handleAddToCart('purchase')}
-                          startIcon={<ShoppingCartIcon />}
-                        >
-                          Add to Cart
-                        </Button>
-                      )}
-                      {['lease', 'both'].includes(book.listingType) && (
-                        <Button
-                          onClick={handleRentClick}
-                          startIcon={<ShoppingCartIcon />}
-                        >
-                          Add to Rent Cart
-                        </Button>
-                      )}
-                    </ButtonGroup>
-                  </>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => handleAddToCart(book.listingType === 'lease' ? 'rent' : 'purchase')}
+                    startIcon={<ShoppingCartIcon />}
+                  >
+                    Add to Cart
+                  </Button>
                 )
               )}
             </Box>
