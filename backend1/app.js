@@ -28,8 +28,12 @@ app.options('*', cors());
 // Security middleware
 app.use(helmet());
 app.use(cookieParser());
-app.use(express.json({ limit: '10kb' }));
-
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ 
+    extended: true,
+    limit: '10mb',
+    parameterLimit: 50000 
+}));
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes

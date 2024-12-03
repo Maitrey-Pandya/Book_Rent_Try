@@ -56,7 +56,7 @@ exports.addToCart = catchAsync(async (req, res, next) => {
 
     // Check if item already exists in cart
     const existingItemIndex = cart.items.findIndex(
-      item => item.book.toString() === bookId && item.type === type
+      item => item.book.toString() === bookId 
     );
 
     if (existingItemIndex > -1) {

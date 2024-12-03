@@ -67,10 +67,10 @@ exports.bulkAddBooks = catchAsync(async (req, res, next) => {
 
 exports.getBooks = catchAsync(async (req, res, next) => {
     const books = await Book.find()
-      .select('isbn title author genre description rating totalRatings status listingType price createdAt')
+      .select('isbn title author genre description rating totalRatings status listingType price createdAt condition leaseTerms')
       .populate('uploader')
       .populate('publisher');
-  
+    console.log(books);
     res.status(200).json({
       status: 'success',
       results: books.length,
@@ -81,27 +81,34 @@ exports.getBooks = catchAsync(async (req, res, next) => {
   });
 
 exports.getBook = catchAsync(async (req, res, next) => {
-  const book = await Book.findById(req.params.id)
-    .select('isbn title author genre description rating totalRatings status listingType price uploader uploaderType publisher createdAt')
-    .populate({
-      path: 'uploader',
-      select: 'name publisherName'
-    })
-    .populate({
-      path: 'publisher',
-      select: 'name publisherName'
-    });
+  try {
+    const book = await Book.findById(req.params.id)
+      .select('isbn title author genre description rating totalRatings status listingType price uploader uploaderType publisher createdAt condition leaseTerms')
+      .populate({
+        path: 'uploader',
+        select: 'name publisherName'
+      })
+      .populate({
+        path: 'publisher',
+        select: 'name publisherName'
+      });
 
-  if (!book) {
-    return next(new AppError('No book found with that ID', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      book
+    if (!book) {
+      return next(new AppError('No book found with that ID', 404));
     }
-  });
+
+    console.log('Book details fetched:', book); // Debug log to verify data
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        book
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching book details:', error);
+    next(error);
+  }
 });
 
 exports.getAllBooks = async (req, res, next) => {

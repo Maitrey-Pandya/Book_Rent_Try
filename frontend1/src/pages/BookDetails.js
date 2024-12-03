@@ -10,7 +10,8 @@ import {
   Chip,
   Alert,
   CircularProgress,
-  ButtonGroup
+  ButtonGroup,
+  Dialog
 } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 import  api  from '../api/axios';
@@ -26,7 +27,8 @@ export function BookDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [rentDialogOpen, setRentDialogOpen] = useState(false);
-  const [rentSuccess, setRentSuccess] = useState(false);
+  const [cartSuccess, setCartSuccess] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     fetchBookDetails();
@@ -37,6 +39,7 @@ export function BookDetails() {
       const response = await api.get(`/api/v1/books/${id}`);
       if (response.data.status === 'success') {
         const bookData = response.data.data.book;
+        console.log(bookData);
         setBook(Array.isArray(bookData) ? bookData[0] : bookData);
       } else {
         setError('Failed to load book details');
@@ -48,48 +51,43 @@ export function BookDetails() {
     }
   };
 
+  const handleRentClick = () => {
+    setRentDialogOpen(true);
+  };
+
+  const handleRentDialogClose = (success = false) => {
+    setRentDialogOpen(false);
+    if (success) {
+      setCartSuccess(true);
+      setTimeout(() => setCartSuccess(false), 3000);
+    }
+  };
+
   const handleAddToCart = async (type) => {
     try {
-      const currentDate = new Date();
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + 7);
+      if (type === 'rent') {
+        handleRentClick();
+        return;
+      }
 
       const cartData = {
         bookId: book._id,
         quantity: 1,
-        type: type,
-        rentalDuration: type === 'rent' ? {
-          startDate: currentDate,
-          endDate: endDate
-        } : undefined
+        type: 'purchase'
       };
 
       const response = await api.post('/api/v1/cart/add', cartData);
       
       if (response.data.status === 'success') {
-        navigate('/cart');
+        setCartSuccess(true);
+        setTimeout(() => setCartSuccess(false), 3000);
       }
     } catch (error) {
-      console.error('Error adding to cart:', error.response || error);
-      if (error.response?.data?.message === 'This book is already in your cart') {
-        alert('This book is already in your cart. Please check your cart.');
-      } else {
-        setError(error.response?.data?.message || 'Failed to add item to cart');
-      }
+      console.error('Error adding to cart:', error);
+      setError(error.response?.data?.message || 'Failed to add item to cart');
     }
   };
 
-  const handleRentClick = () => {
-    setRentDialogOpen(true);
-  };
-
-  const handleRentDialogClose = (success) => {
-    setRentDialogOpen(false);
-    if (success) {
-      setRentSuccess(true);
-      // Optionally refresh book data
-    }
-  };
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return '/assets/book_cover_template.jpg';
     
@@ -104,6 +102,11 @@ export function BookDetails() {
     if (!date) return 'N/A';
     return format(new Date(date), 'MMMM dd, yyyy');
   };
+
+  const handleDone = () => {
+    navigate('/'); // Redirects to home page
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" py={8}>
@@ -127,25 +130,36 @@ export function BookDetails() {
       <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
         <Grid container spacing={4}>
           <Grid item xs={12} md={4}>
-          <img
-                src={getImageUrl(book.coverImage)}
+          <Box
+              sx={{
+                width: '100%',
+                height: '400px', // Fixed height
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                overflow: 'hidden',
+                borderRadius: 2,
+                bgcolor: 'background.paper',
+                boxShadow: 1,
+              }}
+            >
+              <img
+                src={getImageUrl(book.coverImage) || '/assets/book_cover_template.jpg'}
                 alt={book.title}
-                style={{ 
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
+                style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover',
-                  backgroundColor: 'rgba(0,0,0,0.03)'
-                }}
-                onError={(e) => {
-                  console.log('Image load error in details page');
-                  e.target.onerror = null;
-                  e.target.src = '/assets/book_cover_template.jpg';
+                  objectFit: 'contain', // This ensures the image maintains its aspect ratio
+                  maxWidth: '300px', // Maximum width of the image
+                  padding: '8px'
                 }}
               />
-            
+            </Box>
+                      
+            <Box sx={{ mt: 3 }}>
+              {/* ... rest of the pricing section ... */}
+            </Box>
+                      
             <Box sx={{ mt: 3 }}>
               <Typography variant="h6" gutterBottom>Pricing</Typography>
               {['sale', 'both'].includes(book.listingType) && (
@@ -183,31 +197,44 @@ export function BookDetails() {
                 label={book.status} 
                 color={book.status === 'available' ? 'success' : 'error'} 
               />
-              <Chip 
-                label={`${book.rating}/5 (${book.totalRatings} reviews)`} 
-                variant="outlined" 
-              />
+        
               <Chip label={book.genre} color="primary" />
             </Box>
 
-            <Typography variant="body1" paragraph>{book.description}</Typography>
 
-            {['lease', 'both'].includes(book.listingType) && book.leaseTerms && (
-              <Box sx={{ mt: 2, mb: 3 }}>
-                <Typography variant="h6" gutterBottom>Lease Terms</Typography>
-                <Typography variant="body2">{book.leaseTerms}</Typography>
-              </Box>
-            )}
-            
+
             <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom>Book Details</Typography>
+              <Typography variant="h6" gutterBottom><strong>Book Details</strong></Typography>
               <Grid container spacing={2}>
+                {/* Description - Full Width */}
+                <Grid item xs={12}>
+                  <Typography><strong>Description:</strong></Typography>
+                  <Typography sx={{ mb: 2, pl: 2 }}>{book.description || 'No description available'}</Typography>
+                </Grid>
+
+                {/* Left Column */}
                 <Grid item xs={6}>
                   <Typography><strong>ISBN:</strong> {book.isbn || 'N/A'}</Typography>
                   <Typography><strong>Genre:</strong> {book.genre || 'N/A'}</Typography>
+                  <Typography><strong>Status:</strong> {book.status}</Typography>
                   <Typography><strong>Listed On:</strong> {new Date(book.createdAt).toLocaleDateString()}</Typography>
+                  <Typography><strong>Condition:</strong> {book.condition || 'N/A'}</Typography>
+                  {book.conditionDescription && (
+                    <Typography>
+                      <strong>Condition Details:</strong> {book.conditionDescription}
+                    </Typography>
+                  )}
                 </Grid>
+
+                {/* Right Column */}
                 <Grid item xs={6}>
+                  <Typography>
+                    <strong>Publisher:</strong> {
+                      book.uploaderType === 'Publisher' 
+                        ? book.uploader?.publisherName || book.uploader?.name
+                        : book.publisher?.publisherName || book.publisher?.name || 'N/A'
+                    }
+                  </Typography>
                   <Typography>
                     <strong>Uploaded by:</strong> {
                       book.uploaderType === 'Publisher'
@@ -216,30 +243,91 @@ export function BookDetails() {
                     }
                   </Typography>
                   <Typography><strong>Listing Type:</strong> {book.listingType}</Typography>
-                  <Typography><strong>Condition:</strong> {book.condition || 'N/A'}</Typography>
+                  
+                  {['lease', 'both'].includes(book.listingType) && (
+                    <>
+                      <Typography sx={{ mt: 1 }}><strong>Lease Duration:</strong> {book.price?.lease?.minDuration || 1} - {book.price?.lease?.maxDuration || 'No limit'} days</Typography>
+                      {book.leaseTerms && (
+                        <Typography>
+                          <strong>Lease Terms:</strong> {book.leaseTerms}
+                        </Typography>
+                      )}
+                      {book.price?.lease?.securityDeposit && (
+                        <Typography>
+                          <strong>Security Deposit:</strong> ₹{book.price?.lease?.securityDeposit}
+                        </Typography>
+                      )}
+                    </>
+                  )}
                 </Grid>
               </Grid>
             </Box>
 
-            <Box sx={{ mt: 4, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ mt: 4, display: 'flex', gap: 2, flexDirection: 'column' }}>
               {book.uploader?._id === user?.id ? (
                 <Button
                   variant="contained"
                   color="primary"
-                  onClick={() => navigate(`/books/${id}/edit`)}
+                  onClick={handleDone}
+                  sx={{ 
+                    width: 'fit-content',
+                    bgcolor: 'success.main',
+                    '&:hover': {
+                      bgcolor: 'success.dark',
+                    }
+                  }}
                 >
                   Done
                 </Button>
               ) : (
                 book.status === 'available' && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => handleAddToCart(book.listingType === 'lease' ? 'rent' : 'purchase')}
-                    startIcon={<ShoppingCartIcon />}
-                  >
-                    Add to Cart
-                  </Button>
+                  <>
+                    {book.listingType === 'both' ? (
+                      <>
+                        <ButtonGroup variant="contained" sx={{ width: 'fit-content' }}>
+                          <Button
+                            onClick={() => handleAddToCart('purchase')}
+                            startIcon={<ShoppingCartIcon />}
+                            color="primary"
+                          >
+                            Add to Cart as Buy
+                          </Button>
+                          <Button
+                            onClick={() => handleAddToCart('rent')}
+                            startIcon={<ShoppingCartIcon />}
+                            color="secondary"
+                          >
+                            Add to Cart as Rent
+                          </Button>
+                        </ButtonGroup>
+                      </>
+                    ) : (
+                      <>
+                        {book.listingType === 'sale' && (
+                          <Button
+                            onClick={() => handleAddToCart('purchase')}
+                            startIcon={<ShoppingCartIcon />}
+                            color="primary"
+                            variant="contained"
+                            sx={{ width: 'fit-content' }}
+                          >
+                            Add to Cart
+                          </Button>
+                        )}
+                        {book.listingType === 'lease' && (
+                          <Button
+                            onClick={() => handleAddToCart('rent')}
+                            startIcon={<ShoppingCartIcon />}
+                            color="secondary"
+                            variant="contained"
+                            sx={{ width: 'fit-content' }}
+                          >
+                            Add to Rent Cart
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </>
                 )
               )}
             </Box>
@@ -247,15 +335,27 @@ export function BookDetails() {
         </Grid>
       </Paper>
       
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+      >
+        {/* ... existing dialog content ... */}
+      </Dialog>
+
       <RentBookDialog
         book={book}
         open={rentDialogOpen}
         onClose={handleRentDialogClose}
       />
-      
-      {rentSuccess && (
+
+      {cartSuccess && (
         <Alert severity="success" sx={{ mt: 2 }}>
-          Book rented successfully!
+          Item added to cart successfully!
+        </Alert>
+      )}
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
         </Alert>
       )}
     </Container>

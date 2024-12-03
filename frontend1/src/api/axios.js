@@ -5,7 +5,9 @@ const instance = axios.create({
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  maxContentLength: 10000000, // 10MB in bytes
+  maxBodyLength: 10000000
 });
 
 
