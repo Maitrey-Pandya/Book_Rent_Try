@@ -19,6 +19,8 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { RentBookDialog } from '../components/books/RentBookDialog';
 import { format } from 'date-fns';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
 export function BookDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -90,11 +92,11 @@ export function BookDetails() {
 
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return '/assets/book_cover_template.jpg';
-    
+
     if (imageUrl.includes('cloudinary')) {
       return imageUrl.replace('/upload/', '/upload/w_800,h_1200,c_fill,g_center,f_auto,q_auto/');
     }
-    
+
     return imageUrl;
   };
 
