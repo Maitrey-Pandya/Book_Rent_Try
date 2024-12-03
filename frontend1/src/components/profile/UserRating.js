@@ -54,7 +54,7 @@ export function UserRating({ open, onClose, transaction, onRatingSubmit }) {
         endpoint: `/api/v1/users/${uploader._id}/rate`
       });
 
-      const response = await api.post(`/api/v1/users/${uploader._id}/rate`, {
+      const response = await api.post(`/api/user/${uploader._id}/rate`, {
         rating: rating * 20,
         orderId: transaction._id
       });

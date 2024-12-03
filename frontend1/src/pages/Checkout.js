@@ -162,14 +162,15 @@ export function Checkout() {
           {orderId && ` Order ID: ${orderId}`}
         </Typography>
         <Typography variant="body2" sx={{ mt: 2 }}>
-          You will be redirected to your order details shortly...
+          You will be redirected to your order details shortly...<br/>
+          You can view your order details in Transaction History.
         </Typography>
       </DialogContent>
       <DialogActions>
         <Button 
           onClick={() => orderId ? navigate(`/orders/${orderId}`) : setShowSuccess(false)}
         >
-          {orderId ? 'View Order' : 'Close'}
+          {orderId ? 'Done' : 'Close'}
         </Button>
       </DialogActions>
     </Dialog>
