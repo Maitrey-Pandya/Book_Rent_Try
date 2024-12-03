@@ -18,6 +18,8 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { RentBookDialog } from '../components/books/RentBookDialog';
 import { format } from 'date-fns';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
 export function BookDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -92,11 +94,11 @@ export function BookDetails() {
   };
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return '/assets/book_cover_template.jpg';
-    
+
     if (imageUrl.includes('cloudinary')) {
       return imageUrl.replace('/upload/', '/upload/w_800,h_1200,c_fill,g_center,f_auto,q_auto/');
     }
-    
+
     return imageUrl;
   };
 
@@ -127,7 +129,23 @@ export function BookDetails() {
       <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
         <Grid container spacing={4}>
           <Grid item xs={12} md={4}>
-          <img
+            <Box
+              sx={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: '500px',
+                margin: '0 auto',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: 3,
+                '&::before': {
+                  content: '""',
+                  display: 'block',
+                  paddingTop: '150%'
+                }
+              }}
+            >
+              <img
                 src={getImageUrl(book.coverImage)}
                 alt={book.title}
                 style={{ 
@@ -145,6 +163,7 @@ export function BookDetails() {
                   e.target.src = '/assets/book_cover_template.jpg';
                 }}
               />
+            </Box>
             
             <Box sx={{ mt: 3 }}>
               <Typography variant="h6" gutterBottom>Pricing</Typography>

@@ -7,11 +7,11 @@ export function BookCard({ book }) {
 
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return '/assets/book_cover_template.jpg';
-    
+
     if (imageUrl.includes('cloudinary')) {
       return imageUrl.replace('/upload/', '/upload/w_400,h_600,c_fill,g_center,f_auto,q_auto/');
     }
-    
+
     return imageUrl;
   };
 
