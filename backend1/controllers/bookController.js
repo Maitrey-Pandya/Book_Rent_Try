@@ -67,7 +67,7 @@ exports.bulkAddBooks = catchAsync(async (req, res, next) => {
 
 exports.getBooks = catchAsync(async (req, res, next) => {
     const books = await Book.find()
-      .select('isbn title author genre description rating totalRatings status listingType price')
+      .select('isbn title author genre description rating totalRatings status listingType price createdAt')
       .populate('uploader')
       .populate('publisher');
   
@@ -82,7 +82,7 @@ exports.getBooks = catchAsync(async (req, res, next) => {
 
 exports.getBook = catchAsync(async (req, res, next) => {
   const book = await Book.findById(req.params.id)
-    .select('isbn title author genre description rating totalRatings status listingType price uploader uploaderType publisher')
+    .select('isbn title author genre description rating totalRatings status listingType price uploader uploaderType publisher createdAt')
     .populate({
       path: 'uploader',
       select: 'name publisherName'
